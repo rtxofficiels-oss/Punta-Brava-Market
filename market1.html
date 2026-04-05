@@ -1,0 +1,82 @@
+<div class="container">
+        <header>
+            <p>[ ACCÈS SÉCURISÉ PAR PROTOCOLE OGN ]</p>
+            <h1>S1ND1C4T3 - BLACK MARKET</h1>
+            <p class="status">> CONNEXION ÉTABLIE / CRYPTAGE ACTIF</p>
+        </header>
+
+        <main>
+            <p>> Bienvenue. Vos traces ont été effacées. Commandez ici, nous gérons le reste. Soyez brefs.</p>
+
+            <div class="section-title">SECTION : BOTANIQUE</div>
+            <div class="grid">
+                <div class="item">
+                    <div class="item-title">> Weed</div>
+                    <div>Pureté garantie, récolte de la semaine. Idéal pour la revente ou la conso.</div>
+                    <div class="price">Prix : 150$ / unité</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">> Coke</div>
+                    <div>Importation directe du Sud. Non coupée. Effet garanti.</div>
+                    <div class="price">Prix : 350$ / unité</div>
+                </div>
+            </div>
+
+            <div class="section-title">SECTION : QUINCAILLERIE</div>
+            <div class="grid">
+                <div class="item">
+                    <div class="item-title">> Pistolet</div>
+                    <div>Idéal pour la défense personnelle en ville. Numéro de série effacé.</div>
+                    <div class="price">Prix : 5 000$</div>
+                </div>
+                <div class="item">
+                    <div class="item-title">> Fusil d'assaut</div>
+                    <div>Pour les gros chantiers ou régler les guerres de territoire.</div>
+                    <div class="price">Prix : 25 000$</div>
+                </div>
+            </div>
+
+            <div class="section-title">TRANSMISSION DE COMMANDE</div>
+            <form onsubmit="alert('Signal envoyé... Attendez qu\'un livreur vous contacte en ville.'); return false;">
+                
+                <div class="form-group">
+                    <label for="alias">> TON ALIAS (Pas ton vrai nom !) :</label>
+                    <input type="text" id="alias" placeholder="Ex: Ghost_99" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group" style="flex: 3;">
+                        <label for="produit">> MARCHANDISE SOUHAITÉE :</label>
+                        <select id="produit" required>
+                            <option value="">-- Sélectionner un produit --</option>
+                            <option value="Weed">Weed</option>
+                            <option value="Coke">Coke</option>
+                            <option value="Pistolet">Pistolet</option>
+                            <option value="Assaut">Assaut</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="flex: 1;">
+                        <label for="quantite">> QUANTITÉ :</label>
+                        <input type="number" id="quantite" min="1" placeholder="Ex: 10" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="contact">> MOYEN DE CONTACT RP :</label>
+                    <input type="text" id="contact" placeholder="Ton N° de téléphone ou ton Discord RP" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="message">> INSTRUCTIONS PARTICULIÈRES :</label>
+                    <textarea id="message" rows="4" placeholder="Tape ton texte ici... (Heure de livraison préférée, lieu de rdv...)"></textarea>
+                </div>
+
+                <button type="submit">Envoyer le signal</button>
+            </form>
+        </main>
+
+        <div class="footer-note">
+            ⚠️ Si vous êtes de la LSPD, sachez que ce site n'existe pas. Bonne journée.
+        </div>
+    </div>
