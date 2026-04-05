@@ -46,7 +46,7 @@
             </div>
 
             <div class="section-title">TRANSMISSION DE COMMANDE</div>
-            <form onsubmit="alert('Signal envoyé... Attendez qu\'un livreur vous contacte en ville.'); return false;">
+            <form id="darknetForm">
                 
                 <div class="form-group">
                     <label for="alias">> TON ALIAS (Pas ton vrai nom !) :</label>
@@ -58,10 +58,10 @@
                         <label for="produit">> MARCHANDISE SOUHAITÉE :</label>
                         <select id="produit" required>
                             <option value="">-- Sélectionner un produit --</option>
-                            <option value="menthe">Menthe Fraîche (Weed)</option>
-                            <option value="sucre">Sucre Glace (Coke)</option>
-                            <option value="tournevis">Gros Tournevis (Pistolet)</option>
-                            <option value="marteau">Marteau-Piqueur (Assaut)</option>
+                            <option value="Menthe Fraîche (Weed)">Menthe Fraîche (Weed)</option>
+                            <option value="Sucre Glace (Coke)">Sucre Glace (Coke)</option>
+                            <option value="Gros Tournevis (Pistolet)">Gros Tournevis (Pistolet)</option>
+                            <option value="Marteau-Piqueur (Assaut)">Marteau-Piqueur (Assaut)</option>
                         </select>
                     </div>
 
@@ -81,7 +81,7 @@
                     <textarea id="message" rows="4" placeholder="Tape ton texte ici... (Heure de livraison préférée, lieu de rdv...)"></textarea>
                 </div>
 
-                <button type="submit">Envoyer le signal</button>
+                <button type="submit" id="submitBtn">Envoyer le signal</button>
             </form>
         </main>
 
@@ -89,6 +89,65 @@
             ⚠️ Si vous êtes de la LSPD, sachez que ce site n'existe pas. Bonne journée.
         </div>
     </div>
+
+    <script>
+        // 🚨 REMPLACE LE TEXTE CI-DESSOUS PAR TON LIEN WEBHOOK DISCORD 🚨
+        const webhookURL = "https://discord.com/api/webhooks/1490439964675149845/F4aai6wPCQ5ZOMPaFUyVwZi7WhsHA0RJHnkog96TJDmzplmWK0vHXXf5BumYesOLNWuO";
+
+        document.getElementById('darknetForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // Empêche la page de se recharger
+            
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.innerText = "Chiffrement en cours...";
+            submitBtn.disabled = true;
+
+            // Récupération des valeurs
+            const alias = document.getElementById('alias').value;
+            const produit = document.getElementById('produit').value;
+            const quantite = document.getElementById('quantite').value;
+            const contact = document.getElementById('contact').value;
+            const message = document.getElementById('message').value || "Aucune consigne.";
+
+            // Préparation de l'embed pour Discord
+            const discordData = {
+                content: "🚨 **NOUVELLE COMMANDE REÇUE SUR LE DARKNET** 🚨",
+                embeds: [{
+                    color: 65280, // Couleur verte
+                    fields: [
+                        { name: "👤 Client (Alias)", value: alias, inline: true },
+                        { name: "📞 Contact RP", value: contact, inline: true },
+                        { name: "📦 Produit", value: produit, inline: true },
+                        { name: "🔢 Quantité", value: quantite, inline: true },
+                        { name: "📝 Instructions", value: message }
+                    ],
+                    timestamp: new Date()
+                }]
+            };
+
+            // Envoi à Discord
+            fetch(webhookURL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(discordData)
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert("Signal envoyé avec succès dans les tréfonds du réseau. Attendez qu'un livreur vous contacte.");
+                    document.getElementById('darknetForm').reset();
+                } else {
+                    alert("Erreur de connexion avec le réseau sécurisé. Vérifie ton URL de Webhook.");
+                }
+            })
+            .catch(error => {
+                alert("Erreur réseau.");
+                console.error(error);
+            })
+            .finally(() => {
+                submitBtn.innerText = "Envoyer le signal";
+                submitBtn.disabled = false;
+            });
+        });
+    </script>
 
 </body>
 </html>
