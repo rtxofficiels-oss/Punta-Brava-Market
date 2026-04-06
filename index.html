@@ -5,116 +5,76 @@
     <title>PUNTA BRAVA - Network</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Styles spécifiques pour l'écran de verrouillage */
+        /* Styles de base */
         #login-screen {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             background-color: #0d0d0d;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            display: flex; justify-content: center; align-items: center;
             z-index: 9999;
             font-family: 'Courier New', Courier, monospace;
         }
-
         .login-box {
             border: 2px solid #00ff00;
             background-color: #050505;
-            padding: 30px;
-            text-align: center;
+            padding: 30px; text-align: center;
             box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
-            max-width: 400px;
-            width: 90%;
+            max-width: 400px; width: 90%;
         }
-
-        .login-box h2 {
-            color: #00ff00;
-            letter-spacing: 3px;
-            margin-bottom: 20px;
-            text-shadow: 0 0 5px #00ff00;
-        }
-
+        .login-box h2 { color: #00ff00; letter-spacing: 3px; margin-bottom: 20px; text-shadow: 0 0 5px #00ff00; }
         .login-box input {
-            background-color: #000;
-            border: 1px solid #00ff00;
-            color: #00ff00;
-            padding: 10px;
-            width: 100%;
-            box-sizing: border-box;
-            text-align: center;
-            font-family: inherit;
-            margin-bottom: 15px;
+            background-color: #000; border: 1px solid #00ff00; color: #00ff00;
+            padding: 10px; width: 100%; box-sizing: border-box;
+            text-align: center; font-family: inherit; margin-bottom: 15px;
         }
-
         .login-box button {
-            background-color: #00ff00;
-            color: #000;
-            border: none;
-            padding: 10px 20px;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-            font-family: inherit;
-            text-transform: uppercase;
+            background-color: #00ff00; color: #000; border: none;
+            padding: 10px 20px; font-weight: bold; cursor: pointer;
+            width: 100%; font-family: inherit; text-transform: uppercase;
         }
+        .login-box button:hover { background-color: #fff; color: #000; }
+        #error-msg { color: #ff3333; font-size: 0.8em; margin-top: 10px; display: none; }
 
-        .login-box button:hover {
-            background-color: #fff;
-            color: #000;
-        }
+        #main-content { display: none; }
 
-        #error-msg {
-            color: #ff3333;
-            font-size: 0.8em;
-            margin-top: 10px;
-            display: none;
-        }
-
-        /* On cache le conteneur principal par défaut */
-        #main-content {
-            display: none;
-        }
-
-        /* STYLES POUR LES VOYANTS DE STOCK */
+        /* VOYANTS DE STOCK */
         .stock-badge {
-            display: inline-block;
-            padding: 3px 8px;
-            font-size: 0.75em;
-            font-weight: bold;
-            text-transform: uppercase;
-            border-radius: 3px;
-            margin-left: 10px;
-            vertical-align: middle;
+            display: inline-block; padding: 3px 8px; font-size: 0.75em;
+            font-weight: bold; text-transform: uppercase; border-radius: 3px;
+            margin-left: 10px; vertical-align: middle;
         }
-
-        .stock-ok {
-            background-color: rgba(0, 255, 0, 0.2);
-            color: #00ff00;
-            border: 1px solid #00ff00;
-        }
-
-        .stock-low {
-            background-color: rgba(255, 165, 0, 0.2);
-            color: #ffa500;
-            border: 1px solid #ffa500;
-        }
-
-        .stock-none {
-            background-color: rgba(255, 0, 0, 0.2);
-            color: #ff0000;
-            border: 1px solid #ff0000;
-        }
+        .stock-ok { background-color: rgba(0, 255, 0, 0.2); color: #00ff00; border: 1px solid #00ff00; }
+        .stock-low { background-color: rgba(255, 165, 0, 0.2); color: #ffa500; border: 1px solid #ffa500; }
+        .stock-none { background-color: rgba(255, 0, 0, 0.2); color: #ff0000; border: 1px solid #ff0000; }
 
         .price-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-top: 1px dashed #333;
-            padding-top: 5px;
-            margin-top: 5px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-top: 1px dashed #333; padding-top: 10px; margin-top: 10px;
+        }
+
+        /* BOUTONS AJOUT PANIER */
+        .cart-controls { display: flex; align-items: center; gap: 10px; }
+        .cart-btn {
+            background-color: #111; border: 1px solid #00ff00; color: #00ff00;
+            cursor: pointer; padding: 5px 12px; font-weight: bold; font-size: 1.1em;
+        }
+        .cart-btn:hover { background-color: #00ff00; color: #000; }
+        .item-qty { color: #fff; font-weight: bold; min-width: 20px; text-align: center; }
+
+        /* SECTION PANIER */
+        .cart-container {
+            background: #050505; border: 1px solid #00ff00;
+            padding: 20px; margin: 20px 0; box-shadow: 0 0 10px rgba(0,255,0,0.1);
+        }
+        .cart-item {
+            display: flex; justify-content: space-between;
+            padding: 8px 0; border-bottom: 1px solid #222;
+            font-size: 0.9em;
+        }
+        .total-row {
+            display: flex; justify-content: space-between;
+            font-weight: bold; color: #00ff00; font-size: 1.1em;
+            margin-top: 15px; padding-top: 10px; border-top: 2px solid #00ff00;
         }
     </style>
 
@@ -135,7 +95,6 @@
             <input type="password" id="password-input" placeholder="••••••••">
             
             <button id="login-btn" onclick="checkPassword()">S'authentifier</button>
-            
             <p id="error-msg">> ÉCHEC DE L'AUTHENTIFICATION.</p>
         </div>
     </div>
@@ -145,28 +104,43 @@
             <p>[ ACCÈS SÉCURISÉ PAR PROTOCOLE OGN ]</p>
             <h1>PUNTA BRAVA - BLACK MARKET</h1>
             <p class="status">> CONNEXION ÉTABLIE / CRYPTAGE ACTIF</p>
-            <p style="color: #ffa500; font-size: 0.9em;">Session active pour le groupe : <span id="session-group" style="font-weight: bold; color: #fff;"></span></p>
+            <p style="color: #ffa500; font-size: 0.9em;">Session active pour : <span id="session-group" style="font-weight: bold; color: #fff;"></span></p>
         </header>
 
         <main>
-            <p>> Bienvenue. Vos traces ont été effacées. Commandez ici, nous gérons le reste. Soyez brefs.</p>
+            <p>> Bienvenue. Vos traces ont été effacées. Ajoutez vos produits au panier. Soyez brefs.</p>
 
             <div class="section-title">SECTION : BOTANIQUE</div>
             <div class="grid">
                 <div class="item">
                     <div class="item-title">> WEED</div>
-                    <div>Pureté garantie, récolte de la semaine. Idéal pour la revente ou la conso.</div>
+                    <div>Pureté garantie, récolte de la semaine.</div>
                     <div class="price-row">
-                        <div style="color: #fff; font-size: 0.9em;">Prix : 150$ / unité</div>
-                        <span class="stock-badge stock-ok">En Stock</span>
+                        <div>
+                            <span style="color: #fff;">150$ / u</span>
+                            <span class="stock-badge stock-ok">En Stock</span>
+                        </div>
+                        <div class="cart-controls">
+                            <button class="cart-btn" onclick="updateCart('Weed', -1, 150)">-</button>
+                            <span id="qty-Weed" class="item-qty">0</span>
+                            <button class="cart-btn" onclick="updateCart('Weed', 1, 150)">+</button>
+                        </div>
                     </div>
                 </div>
+
                 <div class="item">
-                    <div class="item-title">> Coke</div>
-                    <div>Importation directe du nord. Non coupée. Effet garanti.</div>
+                    <div class="item-title">> COKE</div>
+                    <div>Importation directe du nord. Non coupée.</div>
                     <div class="price-row">
-                        <div style="color: #fff; font-size: 0.9em;">Prix : 350$ / unité</div>
-                        <span class="stock-badge stock-low">Flux Tendu</span>
+                        <div>
+                            <span style="color: #fff;">350$ / u</span>
+                            <span class="stock-badge stock-low">Flux Tendu</span>
+                        </div>
+                        <div class="cart-controls">
+                            <button class="cart-btn" onclick="updateCart('Coke', -1, 350)">-</button>
+                            <span id="qty-Coke" class="item-qty">0</span>
+                            <button class="cart-btn" onclick="updateCart('Coke', 1, 350)">+</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -174,51 +148,56 @@
             <div class="section-title">SECTION : QUINCAILLERIE</div>
             <div class="grid">
                 <div class="item">
-                    <div class="item-title">> Pistolet</div>
-                    <div>Idéal pour la défense personnelle en ville, petit calibre efficace. Numéro de série effacé.</div>
+                    <div class="item-title">> PISTOLET</div>
+                    <div>Petit calibre efficace. Numéro effacé.</div>
                     <div class="price-row">
-                        <div style="color: #fff; font-size: 0.9em;">Prix : 5 000$</div>
-                        <span class="stock-badge stock-ok">En Stock</span>
+                        <div>
+                            <span style="color: #fff;">5 000$ / u</span>
+                            <span class="stock-badge stock-ok">En Stock</span>
+                        </div>
+                        <div class="cart-controls">
+                            <button class="cart-btn" onclick="updateCart('Pistolet', -1, 5000)">-</button>
+                            <span id="qty-Pistolet" class="item-qty">0</span>
+                            <button class="cart-btn" onclick="updateCart('Pistolet', 1, 5000)">+</button>
+                        </div>
                     </div>
                 </div>
+
                 <div class="item">
-                    <div class="item-title">> Fusil d'assaut</div>
-                    <div>Pour les gros chantiers ou régler les guerres de territoire, parfait pour de la défense ou de la dissuasion.</div>
+                    <div class="item-title">> FUSIL D'ASSAUT</div>
+                    <div>Parfait pour de la défense ou dissuasion.</div>
                     <div class="price-row">
-                        <div style="color: #fff; font-size: 0.9em;">Prix : 25 000$</div>
-                        <span class="stock-badge stock-none">Rupture</span>
+                        <div>
+                            <span style="color: #fff;">25 000$ / u</span>
+                            <span class="stock-badge stock-none">Rupture</span>
+                        </div>
+                        <div class="cart-controls">
+                            <button class="cart-btn" onclick="updateCart('Assaut', -1, 25000)">-</button>
+                            <span id="qty-Assaut" class="item-qty">0</span>
+                            <button class="cart-btn" onclick="updateCart('Assaut', 1, 25000)">+</button>
+                        </div>
                     </div>
+                </div>
+            </div>
+
+            <div class="section-title">VOTRE COMMANDE</div>
+            <div class="cart-container">
+                <div id="cart-list" style="color: #888;">> Votre panier est vide.</div>
+                <div class="total-row">
+                    <span>TOTAL ESTIMÉ :</span>
+                    <span id="cart-total">0$</span>
                 </div>
             </div>
 
             <div class="section-title">TRANSMISSION DE COMMANDE</div>
             <form id="darknetForm">
-                
                 <div class="form-group">
                     <label for="alias">> Votre Nom :</label>
                     <input type="text" id="alias" placeholder="Ex: Ghost_99" required>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group" style="flex: 3;">
-                        <label for="produit">> MARCHANDISE SOUHAITÉE :</label>
-                        <select id="produit" required>
-                            <option value="">-- Sélectionner un produit --</option>
-                            <option value="Weed">Weed</option>
-                            <option value="Coke">Coke</option>
-                            <option value="Pistolet">Pistolet</option>
-                            <option value="Assaut">Assaut</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group" style="flex: 1;">
-                        <label for="quantite">> QUANTITÉ :</label>
-                        <input type="number" id="quantite" min="1" placeholder="Ex: 10" required>
-                    </div>
-                </div>
-
                 <div class="form-group">
-                    <label for="dropzone">> POINT DE LARGAGE (Dead Drop) :</label>
+                    <label for="dropzone">> POINT DE LARGAGE :</label>
                     <select id="dropzone" required>
                         <option value="">-- Choisir un lieu de dépôt sécurisé --</option>
                         <option value="Phare d'El Gordo">Le Phare d'El Gordo (Nord-Est)</option>
@@ -229,13 +208,13 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="contact">> MOYEN DE CONTACT (Telephone) :</label>
+                    <label for="contact">> MOYEN DE CONTACT (Téléphone) :</label>
                     <input type="text" id="contact" placeholder="Ton N° de téléphone ou ton Email IG" required>
                 </div>
 
                 <div class="form-group">
                     <label for="message">> INSTRUCTIONS PARTICULIÈRES :</label>
-                    <textarea id="message" rows="4" placeholder="Tape ton texte ici... (Heure de livraison préférée, etc.)"></textarea>
+                    <textarea id="message" rows="4" placeholder="Tape ton texte ici..."></textarea>
                 </div>
 
                 <button type="submit" id="submitBtn">Envoyer le signal</button>
@@ -248,22 +227,15 @@
     </div>
 
     <script>
-        // 🔑 CONFIGURATION DE TES GROUPES ET MOTS DE PASSE
+        // 🔑 COMPTES
         const listeComptes = {
-            "La Main Noir": "MN-6789",
-            "Romano": "ROM-1234",
-            "Madrazo": "MAD-5555",
-            "The Lost MC": "LOST-88",
-            "AOD": "AOD-1%er",
-            "Favela": "FAV-999",
-            "85 Block": "BLOCK-85",
-            "Admin1": "Admin1è5é1",
-            "Admin2": "Admin2è3é6_",
-            "Admin3": "Admin3è0é9à3",
-            "Spectra": "SPEC-00"
+            "La Main Noir": "MN-6789", "Romano": "ROM-1234", "Madrazo": "MAD-5555",
+            "The Lost MC": "LOST-88", "AOD": "AOD-1%er", "Favela": "FAV-999",
+            "85 Block": "BLOCK-85", "Admin1": "Admin1è5é1", "Admin2": "Admin2è3é6_",
+            "Admin3": "Admin3è0é9à3", "Spectra": "SPEC-00"
         };
 
-        // 🔥 INITIALISATION FIREBASE
+        // 🔥 FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyBCXfgv-L9E-AY2aMMemcrURvDLGOLYXi0",
             authDomain: "punta-brava.firebaseapp.com",
@@ -273,13 +245,55 @@
             appId: "1:982313103927:web:de9acfbea2d503b45945b2",
             databaseURL: "https://punta-brava-default-rtdb.europe-west1.firebasedatabase.app"
         };
-        
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
         let currentGroup = "";
+        let panier = {};
 
-        // 🔐 SYSTÈME DE VÉRIFICATION ET BLOCAGE DOUBLE CONNEXION
+        // GESTION DU PANIER
+        function updateCart(productName, change, price) {
+            if (!panier[productName]) {
+                panier[productName] = { qty: 0, price: price };
+            }
+
+            panier[productName].qty += change;
+
+            if (panier[productName].qty < 0) panier[productName].qty = 0;
+
+            document.getElementById('qty-' + productName).innerText = panier[productName].qty;
+            renderCart();
+        }
+
+        function renderCart() {
+            const cartListDiv = document.getElementById('cart-list');
+            const cartTotalDiv = document.getElementById('cart-total');
+            cartListDiv.innerHTML = "";
+            
+            let total = 0;
+            let hasItems = false;
+
+            for (const prod in panier) {
+                if (panier[prod].qty > 0) {
+                    hasItems = true;
+                    const subTotal = panier[prod].qty * panier[prod].price;
+                    total += subTotal;
+                    cartListDiv.innerHTML += `
+                        <div class="cart-item">
+                            <span>> ${prod} (x${panier[prod].qty})</span>
+                            <span>${subTotal.toLocaleString()}$</span>
+                        </div>`;
+                }
+            }
+
+            if (!hasItems) {
+                cartListDiv.innerHTML = "> Votre panier est vide.";
+            }
+
+            cartTotalDiv.innerText = total.toLocaleString() + "$";
+        }
+
+        // CONNEXION
         function checkPassword() {
             const selectedGroup = document.getElementById('group-input').value.trim();
             const inputPass = document.getElementById('password-input').value;
@@ -289,40 +303,26 @@
             loginBtn.innerText = "Vérification...";
             loginBtn.disabled = true;
 
-            // 1. On vérifie si le compte existe et si le mot de passe correspond
             if (!listeComptes[selectedGroup] || listeComptes[selectedGroup] !== inputPass) {
                 errorMsg.style.display = 'block';
                 errorMsg.innerText = "> IDENTIFIANTS OU CLÉ INCORRECTS.";
-                loginBtn.innerText = "S'authentifier";
-                loginBtn.disabled = false;
+                loginBtn.innerText = "S'authentifier"; loginBtn.disabled = false;
                 return;
             }
 
-            // 2. On formate le nom pour Firebase (Pas d'espaces autorisés)
             const firebaseGroupName = selectedGroup.replace(/\s+/g, '_');
-
-            // 3. On demande à Firebase si ce groupe est déjà connecté
             database.ref('connected_users/' + firebaseGroupName).once('value').then((snapshot) => {
                 const sessionData = snapshot.val();
                 const now = Date.now();
 
-                // Si une session existe et qu'elle date de moins de 10 minutes (600000ms), on bloque
                 if (sessionData && (now - sessionData.timestamp < 600000)) {
                     errorMsg.style.display = 'block';
-                    errorMsg.innerText = "> ERREUR : UN APPAREIL EST DÉJÀ CONNECTÉ AVEC CETTE CLÉ.";
-                    loginBtn.innerText = "S'authentifier";
-                    loginBtn.disabled = false;
+                    errorMsg.innerText = "> ERREUR : UN APPAREIL EST DÉJÀ CONNECTÉ.";
+                    loginBtn.innerText = "S'authentifier"; loginBtn.disabled = false;
                 } else {
-                    // Libre ! On enregistre la nouvelle session
-                    database.ref('connected_users/' + firebaseGroupName).set({
-                        connected: true,
-                        timestamp: now
-                    });
-
-                    // On libère le compte automatiquement si l'utilisateur quitte
+                    database.ref('connected_users/' + firebaseGroupName).set({ connected: true, timestamp: now });
                     database.ref('connected_users/' + firebaseGroupName).onDisconnect().remove();
 
-                    // Affichage du site
                     currentGroup = selectedGroup;
                     document.getElementById('session-group').innerText = selectedGroup;
                     document.getElementById('login-screen').style.display = 'none';
@@ -330,53 +330,67 @@
                 }
             }).catch((error) => {
                 console.error(error);
-                errorMsg.style.display = 'block';
-                errorMsg.innerText = "> ERREUR DE CONNEXION AU SERVEUR.";
-                loginBtn.innerText = "S'authentifier";
-                loginBtn.disabled = false;
+                errorMsg.style.display = 'block'; errorMsg.innerText = "> ERREUR DE CONNEXION.";
+                loginBtn.innerText = "S'authentifier"; loginBtn.disabled = false;
             });
         }
 
-        // Permet de valider avec la touche Entrée
         document.getElementById('password-input').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                checkPassword();
-            }
+            if (e.key === 'Enter') checkPassword();
         });
 
-        // 🚨 TON LIEN WEBHOOK DISCORD
+        // ENVOI FORMULAIRE
         const webhookURL = "https://discord.com/api/webhooks/1490439964675149845/F4aai6wPCQ5ZOMPaFUyVwZi7WhsHA0RJHnkog96TJDmzplmWK0vHXXf5BumYesOLNWuO";
 
         document.getElementById('darknetForm').addEventListener('submit', function(e) {
             e.preventDefault();
+
+            // Vérification si panier vide
+            let productsText = "";
+            let cartEmpty = true;
+            for (const prod in panier) {
+                if (panier[prod].qty > 0) {
+                    productsText += `${prod} (x${panier[prod].qty}), `;
+                    cartEmpty = false;
+                }
+            }
+
+            if (cartEmpty) {
+                alert("Votre panier est vide ! Ajoutez au moins un produit.");
+                return;
+            }
+
+            // Nettoyage de la virgule de fin
+            productsText = productsText.slice(0, -2);
             
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.innerText = "Chiffrement en cours...";
             submitBtn.disabled = true;
 
             const alias = document.getElementById('alias').value;
-            const produit = document.getElementById('produit').value;
-            const quantite = document.getElementById('quantite').value;
             const dropzone = document.getElementById('dropzone').value;
             const contact = document.getElementById('contact').value;
             const message = document.getElementById('message').value || "Aucune consigne.";
 
             // 1. ENVOI DISCORD
+            let discordFields = [
+                { name: "👥 Groupe Faction", value: currentGroup, inline: true },
+                { name: "👤 Client (Nom)", value: alias, inline: true },
+                { name: "📞 Contact RP", value: contact, inline: true },
+                { name: "📍 Lieu de largage", value: dropzone, inline: false },
+                { name: "📝 Instructions", value: message, inline: false }
+            ];
+
+            // On ajoute chaque produit au embed discord
+            for (const prod in panier) {
+                if (panier[prod].qty > 0) {
+                    discordFields.push({ name: `📦 ${prod}`, value: `Quantité : **${panier[prod].qty}**`, inline: true });
+                }
+            }
+
             const discordData = {
                 content: "🚨 **NOUVELLE COMMANDE REÇUE SUR LE DARKNET** 🚨",
-                embeds: [{
-                    color: 65280,
-                    fields: [
-                        { name: "👥 Groupe Faction", value: currentGroup, inline: true },
-                        { name: "👤 Client (Nom)", value: alias, inline: true },
-                        { name: "📞 Contact RP", value: contact, inline: true },
-                        { name: "📦 Produit", value: produit, inline: true },
-                        { name: "🔢 Quantité", value: quantite, inline: true },
-                        { name: "📍 Lieu de largage", value: dropzone, inline: false },
-                        { name: "📝 Instructions", value: message }
-                    ],
-                    timestamp: new Date()
-                }]
+                embeds: [{ color: 65280, fields: discordFields, timestamp: new Date() }]
             };
 
             fetch(webhookURL, {
@@ -390,53 +404,31 @@
             
             const formData = new URLSearchParams();
             formData.append('entry.3134180', alias + " (" + currentGroup + ")");
-            formData.append('entry.1778551102', produit);
-            formData.append('entry.738962695', quantite);
+            formData.append('entry.1778551102', productsText); // Tous les produits listés ici
+            formData.append('entry.738962695', "Voir liste"); // Évite les bugs de quantité unique
             formData.append('entry.762486752', dropzone);
             formData.append('entry.561464095', contact);
 
-            fetch(formURL, {
-                method: 'POST',
-                mode: 'no-cors',
-                body: formData
-            })
+            fetch(formURL, { method: 'POST', mode: 'no-cors', body: formData })
             .then(() => {
-                alert("Signal envoyé avec succès dans les tréfonds du réseau. Attendez qu'un livreur vous contacte.");
+                alert("Signal envoyé avec succès dans les tréfonds du réseau.");
                 document.getElementById('darknetForm').reset();
+                panier = {};
+                renderCart();
+                // Reset visuel des compteurs
+                document.querySelectorAll('.item-qty').forEach(el => el.innerText = "0");
             })
-            .catch(error => {
-                alert("Erreur lors de la double transmission.");
-                console.error(error);
-            })
-            .finally(() => {
-                submitBtn.innerText = "Envoyer le signal";
-                submitBtn.disabled = false;
-            });
+            .catch(error => { alert("Erreur lors de la double transmission."); console.error(error); })
+            .finally(() => { submitBtn.innerText = "Envoyer le signal"; submitBtn.disabled = false; });
         });
 
-        // 🛡️ PROTECTION ANTI-CURIEUX (Bloque le clic droit et l'inspecteur)
-        
-        // 1. Bloque le clic droit
-        document.addEventListener('contextmenu', function(e) {
-            e.preventDefault();
-        });
-
-        // 2. Bloque les raccourcis clavier (F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U)
-        document.addEventListener('keydown', function(e) {
-            // Bloque F12
-            if (e.key === "F12") {
-                e.preventDefault();
-            }
-            // Bloque Ctrl + Shift + I ou J (Inspecteur)
-            if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) {
-                e.preventDefault();
-            }
-            // Bloque Ctrl + U (Afficher le code source)
-            if (e.ctrlKey && e.key === 'u') {
-                e.preventDefault();
-            }
+        // 🛡️ PROTECTION ANTI-CURIEUX
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('keydown', e => {
+            if (e.key === "F12") e.preventDefault();
+            if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) e.preventDefault();
+            if (e.ctrlKey && e.key === 'u') e.preventDefault();
         });
     </script>
-
 </body>
 </html>
