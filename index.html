@@ -159,13 +159,24 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="dropzone">> POINT DE LARGAGE (Dead Drop) :</label>
+                    <select id="dropzone" required>
+                        <option value="">-- Choisir un lieu de dépôt sécurisé --</option>
+                        <option value="Phare d'El Gordo">Le Phare d'El Gordo (Nord-Est)</option>
+                        <option value="Parking Motel Abandonné">Derrière le motel abandonné (Sandy Shores)</option>
+                        <option value="Conteneurs Docks">Sous les conteneurs bleus (Docks de LS)</option>
+                        <option value="Benne à ordure ruelle">Dans la ruelle derrière le Benny's</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
                     <label for="contact">> MOYEN DE CONTACT (Telephone) :</label>
                     <input type="text" id="contact" placeholder="Ton N° de téléphone ou ton Email IG" required>
                 </div>
 
                 <div class="form-group">
                     <label for="message">> INSTRUCTIONS PARTICULIÈRES :</label>
-                    <textarea id="message" rows="4" placeholder="Tape ton texte ici... (Heure de livraison préférée, lieu de rdv...)"></textarea>
+                    <textarea id="message" rows="4" placeholder="Tape ton texte ici... (Heure de livraison préférée, etc.)"></textarea>
                 </div>
 
                 <button type="submit" id="submitBtn">Envoyer le signal</button>
@@ -182,8 +193,6 @@
         function checkPassword() {
             const input = document.getElementById('password-input').value;
             const errorMsg = document.getElementById('error-msg');
-            
-            // 👇 Mot de passe défini ici
             const motDePasseCorrect = "PUNTABRAVA2026";
 
             if (input === motDePasseCorrect) {
@@ -194,7 +203,6 @@
             }
         }
 
-        // Touche Entrée pour valider le mot de passe
         document.getElementById('password-input').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 checkPassword();
@@ -214,6 +222,7 @@
             const alias = document.getElementById('alias').value;
             const produit = document.getElementById('produit').value;
             const quantite = document.getElementById('quantite').value;
+            const dropzone = document.getElementById('dropzone').value; // Nouveau
             const contact = document.getElementById('contact').value;
             const message = document.getElementById('message').value || "Aucune consigne.";
 
@@ -226,6 +235,7 @@
                         { name: "📞 Contact RP", value: contact, inline: true },
                         { name: "📦 Produit", value: produit, inline: true },
                         { name: "🔢 Quantité", value: quantite, inline: true },
+                        { name: "📍 Lieu de largage", value: dropzone, inline: false }, // Nouveau
                         { name: "📝 Instructions", value: message }
                     ],
                     timestamp: new Date()
