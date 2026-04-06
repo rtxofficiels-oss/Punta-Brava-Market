@@ -37,7 +37,7 @@
             text-shadow: 0 0 5px #00ff00;
         }
 
-        .login-box input {
+        .login-box select, .login-box input {
             background-color: #000;
             border: 1px solid #00ff00;
             color: #00ff00;
@@ -117,6 +117,9 @@
             margin-top: 5px;
         }
     </style>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
 <body>
 
@@ -124,12 +127,25 @@
         <div class="login-box">
             <h2>ACCÈS RESTREINT</h2>
             <p style="color: #666; font-size: 0.9em;">[ RÉSEAU PUNTA BRAVA ]</p>
-            <p style="color: #00ff00; margin-bottom: 20px;">> Entrez la clé de chiffrement :</p>
             
+            <label style="color: #00ff00; display: block; margin-bottom: 5px; font-size: 0.9em;">> Sélectionnez votre groupe :</label>
+            <select id="group-select">
+                <option value="La Main Noir">La Main Noir</option>
+                <option value="Romano">Romano</option>
+                <option value="Madrazo">Madrazo</option>
+                <option value="The Lost MC">The Lost MC</option>
+                <option value="AOD">AOD</option>
+                <option value="Favela">Favela</option>
+                <option value="85 Block">85 Block</option>
+                <option value="Spectra">Spectra</option>
+            </select>
+
+            <label style="color: #00ff00; display: block; margin-bottom: 5px; font-size: 0.9em;">> Clé de chiffrement :</label>
             <input type="password" id="password-input" placeholder="••••••••">
-            <button onclick="checkPassword()">S'authentifier</button>
             
-            <p id="error-msg">> ÉCHEC DE L'AUTHENTIFICATION. IP TRACÉE.</p>
+            <button id="login-btn" onclick="checkPassword()">S'authentifier</button>
+            
+            <p id="error-msg">> ÉCHEC DE L'AUTHENTIFICATION.</p>
         </div>
     </div>
 
@@ -138,6 +154,7 @@
             <p>[ ACCÈS SÉCURISÉ PAR PROTOCOLE OGN ]</p>
             <h1>PUNTA BRAVA - BLACK MARKET</h1>
             <p class="status">> CONNEXION ÉTABLIE / CRYPTAGE ACTIF</p>
+            <p style="color: #ffa500; font-size: 0.9em;">Session active pour le groupe : <span id="session-group" style="font-weight: bold; color: #fff;"></span></p>
         </header>
 
         <main>
@@ -240,18 +257,90 @@
     </div>
 
     <script>
-        // 🔐 SYSTÈME DE MOT DE PASSE
-        function checkPassword() {
-            const input = document.getElementById('password-input').value;
-            const errorMsg = document.getElementById('error-msg');
-            const motDePasseCorrect = "PUNTABRAVA2026";
+        // 🔑 CONFIGURATION DE TES GROUPES ET MOTS DE PASSE (Tu peux les changer ici)
+        const listeComptes = {
+            "La Main Noir": "MN-6789",
+            "Romano": "ROM-1234",
+            "Madrazo": "MAD-5555",
+            "The Lost MC": "LOST-88",
+            "AOD": "AOD-1%er",
+            "Favela": "FAV-999",
+            "85 Block": "BLOCK-85",
+            "Spectra": "SPEC-00"
+        };
 
-            if (input === motDePasseCorrect) {
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('main-content').style.display = 'block';
-            } else {
+        // 🔥 INITIALISATION FIREBASE (Tes clés d'images précédentes)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBCXfgv-L9E-AY2aMMemcrURvDLGOLYXi0",
+            authDomain: "punta-brava.firebaseapp.com",
+            projectId: "punta-brava",
+            storageBucket: "punta-brava.firebasestorage.app",
+            messagingSenderId: "982313103927",
+            appId: "1:982313103927:web:de9acfbea2d503b45945b2",
+            databaseURL: "https://punta-brava-default-rtdb.europe-west1.firebasedatabase.app"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        let currentGroup = "";
+
+        // 🔐 SYSTÈME DE VÉRIFICATION ET BLOCAGE DOUBLE CONNEXION
+        function checkPassword() {
+            const selectedGroup = document.getElementById('group-select').value;
+            const inputPass = document.getElementById('password-input').value;
+            const errorMsg = document.getElementById('error-msg');
+            const loginBtn = document.getElementById('login-btn');
+
+            loginBtn.innerText = "Vérification...";
+            loginBtn.disabled = true;
+
+            // 1. On vérifie si le mot de passe correspond au groupe dans notre liste
+            if (listeComptes[selectedGroup] !== inputPass) {
                 errorMsg.style.display = 'block';
+                errorMsg.innerText = "> CLÉ INCORRECTE POUR CE GROUPE.";
+                loginBtn.innerText = "S'authentifier";
+                loginBtn.disabled = false;
+                return;
             }
+
+            // 2. On formate le nom pour Firebase (Pas d'espaces autorisés)
+            const firebaseGroupName = selectedGroup.replace(/\s+/g, '_');
+
+            // 3. On demande à Firebase si ce groupe est déjà connecté
+            database.ref('connected_users/' + firebaseGroupName).once('value').then((snapshot) => {
+                const sessionData = snapshot.val();
+                const now = Date.now();
+
+                // Si une session existe et qu'elle date de moins de 10 minutes (600000ms), on bloque
+                if (sessionData && (now - sessionData.timestamp < 600000)) {
+                    errorMsg.style.display = 'block';
+                    errorMsg.innerText = "> ERREUR : UN APPAREIL EST DÉJÀ CONNECTÉ AVEC CETTE CLÉ.";
+                    loginBtn.innerText = "S'authentifier";
+                    loginBtn.disabled = false;
+                } else {
+                    // Libre ! On enregistre la nouvelle session
+                    database.ref('connected_users/' + firebaseGroupName).set({
+                        connected: true,
+                        timestamp: now
+                    });
+
+                    // On libère le compte automatiquement si l'utilisateur quitte
+                    database.ref('connected_users/' + firebaseGroupName).onDisconnect().remove();
+
+                    // Affichage du site
+                    currentGroup = selectedGroup;
+                    document.getElementById('session-group').innerText = selectedGroup;
+                    document.getElementById('login-screen').style.display = 'none';
+                    document.getElementById('main-content').style.display = 'block';
+                }
+            }).catch((error) => {
+                console.error(error);
+                errorMsg.style.display = 'block';
+                errorMsg.innerText = "> ERREUR DE CONNEXION AU SERVEUR.";
+                loginBtn.innerText = "S'authentifier";
+                loginBtn.disabled = false;
+            });
         }
 
         document.getElementById('password-input').addEventListener('keypress', function (e) {
@@ -277,12 +366,13 @@
             const contact = document.getElementById('contact').value;
             const message = document.getElementById('message').value || "Aucune consigne.";
 
-            // 1. ENVOI DISCORD
+            // 1. ENVOI DISCORD (Avec le nom du groupe connecté !)
             const discordData = {
                 content: "🚨 **NOUVELLE COMMANDE REÇUE SUR LE DARKNET** 🚨",
                 embeds: [{
                     color: 65280,
                     fields: [
+                        { name: "👥 Groupe Faction", value: currentGroup, inline: true },
                         { name: "👤 Client (Nom)", value: alias, inline: true },
                         { name: "📞 Contact RP", value: contact, inline: true },
                         { name: "📦 Produit", value: produit, inline: true },
@@ -300,11 +390,11 @@
                 body: JSON.stringify(discordData)
             });
 
-            // 2. ENVOI GOOGLE SHEETS (Automatisé avec tes codes)
+            // 2. ENVOI GOOGLE SHEETS
             const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSfnOJV5fYJlKY9e2-aQDYJ8iEsIRRt7wSkmi-x9Dp2p8VKYyg/formResponse";
             
             const formData = new URLSearchParams();
-            formData.append('entry.3134180', alias);
+            formData.append('entry.3134180', alias + " (" + currentGroup + ")");
             formData.append('entry.1778551102', produit);
             formData.append('entry.738962695', quantite);
             formData.append('entry.762486752', dropzone);
