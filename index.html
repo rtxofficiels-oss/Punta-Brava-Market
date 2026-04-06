@@ -253,11 +253,12 @@
 
         let currentGroup = "";
         let panier = {};
+        let montantTotalCommande = 0;
 
-        // GESTION DU PANIER (Au clavier)
+        // GESTION DU PANIER
         function updateCart(productName, price) {
             const inputVal = document.getElementById('input-' + productName).value;
-            const qty = parseInt(inputVal) || 0; // Si le champ est vide, on prend 0
+            const qty = parseInt(inputVal) || 0;
 
             if (qty < 0) {
                 document.getElementById('input-' + productName).value = 0;
@@ -293,6 +294,7 @@
                 cartListDiv.innerHTML = "> Votre panier est vide.";
             }
 
+            montantTotalCommande = total;
             cartTotalDiv.innerText = total.toLocaleString() + "$";
         }
 
@@ -388,6 +390,8 @@
                 }
             }
 
+            discordFields.push({ name: "💰 MONTANT TOTAL", value: `**${montantTotalCommande.toLocaleString()}$**`, inline: false });
+
             const discordData = {
                 content: "🚨 **NOUVELLE COMMANDE REÇUE SUR LE DARKNET** 🚨",
                 embeds: [{ color: 65280, fields: discordFields, timestamp: new Date() }]
@@ -408,6 +412,9 @@
             formData.append('entry.738962695', "Voir liste");
             formData.append('entry.762486752', dropzone);
             formData.append('entry.561464095', contact);
+            
+            // L'ID du champ TOTAL de ton formulaire injecté directement ici
+            formData.append('entry.1843232049', montantTotalCommande + "$");
 
             fetch(formURL, { method: 'POST', mode: 'no-cors', body: formData })
             .then(() => {
@@ -415,7 +422,6 @@
                 document.getElementById('darknetForm').reset();
                 panier = {};
                 renderCart();
-                // Reset les champs texte de quantité
                 document.querySelectorAll('.qty-input').forEach(el => el.value = "");
             })
             .catch(error => { alert("Erreur lors de la double transmission."); console.error(error); })
