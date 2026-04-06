@@ -6,15 +6,13 @@
     <link rel="stylesheet" href="style.css">
     <style>
         /* Styles de base */
-        /* Interdire la sélection du texte */
         body {
-            -webkit-user-select: none; /* Safari */
-            -moz-user-select: none;    /* Firefox */
-            -ms-user-select: none;     /* IE10+/Edge */
-            user-select: none;         /* Standard */
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
         
-        /* Autoriser quand même la sélection dans les champs de saisie (inputs) */
         input, textarea, select {
             -webkit-user-select: text;
             -moz-user-select: text;
@@ -68,7 +66,6 @@
             border-top: 1px dashed #333; padding-top: 10px; margin-top: 10px;
         }
 
-        /* CHAMP QUANTITÉ CLAVIER */
         .qty-input {
             background-color: #111;
             border: 1px solid #00ff00;
@@ -84,7 +81,6 @@
             box-shadow: 0 0 5px #00ff00;
         }
 
-        /* SECTION PANIER */
         .cart-container {
             background: #050505; border: 1px solid #00ff00;
             padding: 20px; margin: 20px 0; box-shadow: 0 0 10px rgba(0,255,0,0.1);
@@ -128,14 +124,10 @@
             <h1>PUNTA BRAVA - BLACK MARKET</h1>
             <p class="status">> CONNEXION ÉTABLIE / CRYPTAGE ACTIF</p>
             <p style="color: #ffa500; font-size: 0.9em;">Session active pour : <span id="session-group" style="font-weight: bold; color: #fff;"></span></p>
-            
-            <p style="color: #ff3333; font-weight: bold; font-size: 1.2em; margin-top: 10px;">
-                ⏱️ TEMPS AVANT DÉCONNEXION AUTOMATIQUE : <span id="timer">10:00</span>
-            </p>
         </header>
 
         <main>
-            <p>> Bienvenue. Vos traces ont été effacées. Entrez les quantités souhaitées. Soyez brefs.</p>
+            <p style="margin-bottom: 20px;">> Bienvenue. Vos traces ont été effacées. Entrez les quantités souhaitées. Soyez brefs.</p>
 
             <div class="section-title">SECTION : BOTANIQUE</div>
             <div class="grid">
@@ -275,16 +267,10 @@
         let panier = {};
         let montantTotalCommande = 0;
 
-        // GESTION DU PANIER
         function updateCart(productName, price) {
             const inputVal = document.getElementById('input-' + productName).value;
             const qty = parseInt(inputVal) || 0;
-
-            if (qty < 0) {
-                document.getElementById('input-' + productName).value = 0;
-                return;
-            }
-
+            if (qty < 0) { document.getElementById('input-' + productName).value = 0; return; }
             panier[productName] = { qty: qty, price: price };
             renderCart();
         }
@@ -293,7 +279,6 @@
             const cartListDiv = document.getElementById('cart-list');
             const cartTotalDiv = document.getElementById('cart-total');
             cartListDiv.innerHTML = "";
-            
             let total = 0;
             let hasItems = false;
 
@@ -309,16 +294,11 @@
                         </div>`;
                 }
             }
-
-            if (!hasItems) {
-                cartListDiv.innerHTML = "> Votre panier est vide.";
-            }
-
+            if (!hasItems) { cartListDiv.innerHTML = "> Votre panier est vide."; }
             montantTotalCommande = total;
             cartTotalDiv.innerText = total.toLocaleString() + "$";
         }
 
-        // CONNEXION
         function checkPassword() {
             const selectedGroup = document.getElementById('group-input').value.trim();
             const inputPass = document.getElementById('password-input').value;
@@ -340,7 +320,8 @@
                 const sessionData = snapshot.val();
                 const now = Date.now();
 
-                if (sessionData && (now - sessionData.timestamp < 600000)) {
+                // On garde la sécurité "Anti-double-connexion" mais sans timer d'expiration court
+                if (sessionData && (now - sessionData.timestamp < 3600000)) { // 1 heure de battement
                     errorMsg.style.display = 'block';
                     errorMsg.innerText = "> ERREUR : UN APPAREIL EST DÉJÀ CONNECTÉ.";
                     loginBtn.innerText = "S'authentifier"; loginBtn.disabled = false;
@@ -352,71 +333,21 @@
                     document.getElementById('session-group').innerText = selectedGroup;
                     document.getElementById('login-screen').style.display = 'none';
                     document.getElementById('main-content').style.display = 'block';
-                    
-                    // ON LANCE LE MINUTEUR ICI
-                    startSessionTimer();
                 }
             }).catch((error) => {
-                console.error(error);
                 errorMsg.style.display = 'block'; errorMsg.innerText = "> ERREUR DE CONNEXION.";
                 loginBtn.innerText = "S'authentifier"; loginBtn.disabled = false;
             });
-        }
-
-        // FONCTION DU MINUTEUR DE 2 MINUTES
-        function startSessionTimer() {
-            let timeLeft = 120; // 120 secondes = 2 minutes
-            const timerDisplay = document.getElementById('timer');
-            
-            const countdown = setInterval(() => {
-                let minutes = Math.floor(timeLeft / 60);
-                let seconds = timeLeft % 60;
-                
-                minutes = minutes < 10 ? '0' + minutes : minutes;
-                seconds = seconds < 10 ? '0' + seconds : seconds;
-                
-                timerDisplay.innerText = `${minutes}:${seconds}`;
-                
-                if (timeLeft <= 0) {
-                    clearInterval(countdown);
-                    
-                    // 1. Déconnexion de Firebase
-                    const firebaseGroupName = currentGroup.replace(/\s+/g, '_');
-                    database.ref('connected_users/' + firebaseGroupName).remove();
-                    
-                    // 2. Reset des variables et du panier
-                    panier = {};
-                    renderCart();
-                    document.getElementById('darknetForm').reset();
-                    document.querySelectorAll('.qty-input').forEach(el => el.value = "");
-                    
-                    // 3. Retour à l'écran de connexion avec Alerte
-                    document.getElementById('main-content').style.display = 'none';
-                    document.getElementById('login-screen').style.display = 'flex';
-                    
-                    const errorMsg = document.getElementById('error-msg');
-                    errorMsg.style.display = 'block';
-                    errorMsg.innerText = "> SESSION EXPIRÉE : Risque de traçage LSPD trop élevé. Reconnectez-vous.";
-                    
-                    const loginBtn = document.getElementById('login-btn');
-                    loginBtn.innerText = "S'authentifier"; 
-                    loginBtn.disabled = false;
-                }
-                
-                timeLeft--;
-            }, 1000);
         }
 
         document.getElementById('password-input').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') checkPassword();
         });
 
-        // ENVOI FORMULAIRE
         const webhookURL = "https://discord.com/api/webhooks/1490439964675149845/F4aai6wPCQ5ZOMPaFUyVwZi7WhsHA0RJHnkog96TJDmzplmWK0vHXXf5BumYesOLNWuO";
 
         document.getElementById('darknetForm').addEventListener('submit', function(e) {
             e.preventDefault();
-
             let productsText = "";
             let cartEmpty = true;
             for (const prod in panier) {
@@ -426,29 +357,18 @@
                 }
             }
 
-            if (cartEmpty) {
-                alert("Votre panier est vide ! Entrez une quantité sur un produit.");
-                return;
-            }
-
+            if (cartEmpty) { alert("Votre panier est vide !"); return; }
             productsText = productsText.slice(0, -2);
-             
             const submitBtn = document.getElementById('submitBtn');
-            submitBtn.innerText = "Chiffrement en cours...";
+            submitBtn.innerText = "Chiffrement...";
             submitBtn.disabled = true;
 
-            const alias = document.getElementById('alias').value;
-            const dropzone = document.getElementById('dropzone').value;
-            const contact = document.getElementById('contact').value;
-            const message = document.getElementById('message').value || "Aucune consigne.";
-
-            // 1. ENVOI DISCORD
-            let discordFields = [
+            const discordFields = [
                 { name: "👥 Groupe Faction", value: currentGroup, inline: true },
-                { name: "👤 Client (Nom)", value: alias, inline: true },
-                { name: "📞 Contact RP", value: contact, inline: true },
-                { name: "📍 Lieu de largage", value: dropzone, inline: false },
-                { name: "📝 Instructions", value: message, inline: false }
+                { name: "👤 Client", value: document.getElementById('alias').value, inline: true },
+                { name: "📞 Contact", value: document.getElementById('contact').value, inline: true },
+                { name: "📍 Lieu", value: document.getElementById('dropzone').value, inline: false },
+                { name: "📝 Instructions", value: document.getElementById('message').value || "Aucune.", inline: false }
             ];
 
             for (const prod in panier) {
@@ -456,63 +376,38 @@
                     discordFields.push({ name: `📦 ${prod}`, value: `Quantité : **${panier[prod].qty}**`, inline: true });
                 }
             }
-
-            discordFields.push({ name: "💰 MONTANT TOTAL", value: `**${montantTotalCommande.toLocaleString()}$**`, inline: false });
-
-            const discordData = {
-                content: "🚨 **NOUVELLE COMMANDE REÇUE SUR LE DARKNET** 🚨",
-                embeds: [{ color: 65280, fields: discordFields, timestamp: new Date() }]
-            };
+            discordFields.push({ name: "💰 TOTAL", value: `**${montantTotalCommande.toLocaleString()}$**`, inline: false });
 
             fetch(webhookURL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(discordData)
+                body: JSON.stringify({
+                    content: "🚨 **NOUVELLE COMMANDE DARKNET** 🚨",
+                    embeds: [{ color: 65280, fields: discordFields, timestamp: new Date() }]
+                })
             });
 
-            // 2. ENVOI GOOGLE SHEETS
             const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSfnOJV5fYJlKY9e2-aQDYJ8iEsIRRt7wSkmi-x9Dp2p8VKYyg/formResponse";
-             
             const formData = new URLSearchParams();
-            formData.append('entry.3134180', alias + " (" + currentGroup + ")"); 
+            formData.append('entry.3134180', document.getElementById('alias').value + " (" + currentGroup + ")"); 
             formData.append('entry.1778551102', productsText); 
-            formData.append('entry.762486752', dropzone);
-            formData.append('entry.561464095', contact);
+            formData.append('entry.762486752', document.getElementById('dropzone').value);
+            formData.append('entry.561464095', document.getElementById('contact').value);
             formData.append('entry.2107709589', montantTotalCommande + "$");
 
             fetch(formURL, { method: 'POST', mode: 'no-cors', body: formData })
             .then(() => {
-                alert("Signal envoyé avec succès dans les tréfonds du réseau.");
+                alert("Signal envoyé avec succès.");
                 document.getElementById('darknetForm').reset();
-                panier = {};
-                renderCart();
+                panier = {}; renderCart();
                 document.querySelectorAll('.qty-input').forEach(el => el.value = "");
             })
-            .catch(error => { alert("Erreur lors de la double transmission."); console.error(error); })
             .finally(() => { submitBtn.innerText = "Envoyer le signal"; submitBtn.disabled = false; });
         });
 
-        // 🛡️ PROTECTION ANTI-CURIEUX
-        document.addEventListener('contextmenu', e => e.preventDefault()); // Bloque le clic droit
-        
+        document.addEventListener('contextmenu', e => e.preventDefault());
         document.addEventListener('keydown', e => {
-            // Bloque F12
-            if (e.key === "F12") e.preventDefault();
-            
-            // Bloque Ctrl+Shift+I et Ctrl+Shift+J (Inspecteur)
-            if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) e.preventDefault();
-            
-            // Bloque Ctrl+U (Afficher le code source)
-            if (e.ctrlKey && e.key === 'u') e.preventDefault();
-            
-            // Bloque Ctrl+C (Copier)
-            if (e.ctrlKey && e.key === 'c') {
-                e.preventDefault();
-                alert("🔒 Protocole de sécurité : La copie de données est interdite sur ce terminal.");
-            }
-            
-            // Bloque Ctrl+A (Tout sélectionner)
-            if (e.ctrlKey && e.key === 'a') e.preventDefault();
+            if (e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) || (e.ctrlKey && e.key === 'u')) e.preventDefault();
         });
     </script>
 </body>
