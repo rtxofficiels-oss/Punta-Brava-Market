@@ -37,7 +37,7 @@
             text-shadow: 0 0 5px #00ff00;
         }
 
-        .login-box select, .login-box input {
+        .login-box input {
             background-color: #000;
             border: 1px solid #00ff00;
             color: #00ff00;
@@ -128,17 +128,8 @@
             <h2>ACCÈS RESTREINT</h2>
             <p style="color: #666; font-size: 0.9em;">[ RÉSEAU PUNTA BRAVA ]</p>
             
-            <label style="color: #00ff00; display: block; margin-bottom: 5px; font-size: 0.9em;">> Sélectionnez votre groupe :</label>
-            <select id="group-select">
-                <option value="La Main Noir">La Main Noir</option>
-                <option value="Romano">Romano</option>
-                <option value="Madrazo">Madrazo</option>
-                <option value="The Lost MC">The Lost MC</option>
-                <option value="AOD">AOD</option>
-                <option value="Favela">Favela</option>
-                <option value="85 Block">85 Block</option>
-                <option value="Spectra">Spectra</option>
-            </select>
+            <label style="color: #00ff00; display: block; margin-bottom: 5px; font-size: 0.9em;">> Identifiant Groupe :</label>
+            <input type="text" id="group-input" placeholder="Ex: Madrazo">
 
             <label style="color: #00ff00; display: block; margin-bottom: 5px; font-size: 0.9em;">> Clé de chiffrement :</label>
             <input type="password" id="password-input" placeholder="••••••••">
@@ -257,7 +248,7 @@
     </div>
 
     <script>
-        // 🔑 CONFIGURATION DE TES GROUPES ET MOTS DE PASSE (Tu peux les changer ici)
+        // 🔑 CONFIGURATION DE TES GROUPES ET MOTS DE PASSE
         const listeComptes = {
             "La Main Noir": "MN-6789",
             "Romano": "ROM-1234",
@@ -272,7 +263,7 @@
             "Spectra": "SPEC-00"
         };
 
-        // 🔥 INITIALISATION FIREBASE (Tes clés d'images précédentes)
+        // 🔥 INITIALISATION FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyBCXfgv-L9E-AY2aMMemcrURvDLGOLYXi0",
             authDomain: "punta-brava.firebaseapp.com",
@@ -290,7 +281,7 @@
 
         // 🔐 SYSTÈME DE VÉRIFICATION ET BLOCAGE DOUBLE CONNEXION
         function checkPassword() {
-            const selectedGroup = document.getElementById('group-select').value;
+            const selectedGroup = document.getElementById('group-input').value.trim();
             const inputPass = document.getElementById('password-input').value;
             const errorMsg = document.getElementById('error-msg');
             const loginBtn = document.getElementById('login-btn');
@@ -298,10 +289,10 @@
             loginBtn.innerText = "Vérification...";
             loginBtn.disabled = true;
 
-            // 1. On vérifie si le mot de passe correspond au groupe dans notre liste
-            if (listeComptes[selectedGroup] !== inputPass) {
+            // 1. On vérifie si le compte existe et si le mot de passe correspond
+            if (!listeComptes[selectedGroup] || listeComptes[selectedGroup] !== inputPass) {
                 errorMsg.style.display = 'block';
-                errorMsg.innerText = "> CLÉ INCORRECTE POUR CE GROUPE.";
+                errorMsg.innerText = "> IDENTIFIANTS OU CLÉ INCORRECTS.";
                 loginBtn.innerText = "S'authentifier";
                 loginBtn.disabled = false;
                 return;
@@ -346,6 +337,7 @@
             });
         }
 
+        // Permet de valider avec la touche Entrée
         document.getElementById('password-input').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') {
                 checkPassword();
@@ -369,7 +361,7 @@
             const contact = document.getElementById('contact').value;
             const message = document.getElementById('message').value || "Aucune consigne.";
 
-            // 1. ENVOI DISCORD (Avec le nom du groupe connecté !)
+            // 1. ENVOI DISCORD
             const discordData = {
                 content: "🚨 **NOUVELLE COMMANDE REÇUE SUR LE DARKNET** 🚨",
                 embeds: [{
