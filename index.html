@@ -413,6 +413,29 @@
                 submitBtn.disabled = false;
             });
         });
+
+        // 🛡️ PROTECTION ANTI-CURIEUX (Bloque le clic droit et l'inspecteur)
+        
+        // 1. Bloque le clic droit
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+        });
+
+        // 2. Bloque les raccourcis clavier (F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U)
+        document.addEventListener('keydown', function(e) {
+            // Bloque F12
+            if (e.key === "F12") {
+                e.preventDefault();
+            }
+            // Bloque Ctrl + Shift + I ou J (Inspecteur)
+            if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) {
+                e.preventDefault();
+            }
+            // Bloque Ctrl + U (Afficher le code source)
+            if (e.ctrlKey && e.key === 'u') {
+                e.preventDefault();
+            }
+        });
     </script>
 
 </body>
