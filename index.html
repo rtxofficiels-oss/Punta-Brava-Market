@@ -4,10 +4,97 @@
     <meta charset="UTF-8">
     <title>PUNTA BRAVA - Network</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* Styles spécifiques pour l'écran de verrouillage */
+        #login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #0d0d0d;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .login-box {
+            border: 2px solid #00ff00;
+            background-color: #050505;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .login-box h2 {
+            color: #00ff00;
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 5px #00ff00;
+        }
+
+        .login-box input {
+            background-color: #000;
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+            text-align: center;
+            font-family: inherit;
+            margin-bottom: 15px;
+        }
+
+        .login-box button {
+            background-color: #00ff00;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            font-family: inherit;
+            text-transform: uppercase;
+        }
+
+        .login-box button:hover {
+            background-color: #fff;
+            color: #000;
+        }
+
+        #error-msg {
+            color: #ff3333;
+            font-size: 0.8em;
+            margin-top: 10px;
+            display: none;
+        }
+
+        /* On cache le conteneur principal par défaut */
+        #main-content {
+            display: none;
+        }
+    </style>
 </head>
 <body>
 
-    <div class="container">
+    <div id="login-screen">
+        <div class="login-box">
+            <h2>ACCÈS RESTREINT</h2>
+            <p style="color: #666; font-size: 0.9em;">[ RÉSEAU PUNTA BRAVA ]</p>
+            <p style="color: #00ff00; margin-bottom: 20px;">> Entrez la clé de chiffrement :</p>
+            
+            <input type="password" id="password-input" placeholder="••••••••">
+            <button onclick="checkPassword()">S'authentifier</button>
+            
+            <p id="error-msg">> ÉCHEC DE L'AUTHENTIFICATION. IP TRACÉE.</p>
+        </div>
+    </div>
+
+    <div id="main-content" class="container">
         <header>
             <p>[ ACCÈS SÉCURISÉ PAR PROTOCOLE OGN ]</p>
             <h1>PUNTA BRAVA - BLACK MARKET</h1>
@@ -91,28 +178,49 @@
     </div>
 
     <script>
-        // 🚨 REMPLACE LE TEXTE CI-DESSOUS PAR TON LIEN WEBHOOK DISCORD 🚨
+        // 🔐 SYSTÈME DE MOT DE PASSE
+        function checkPassword() {
+            const input = document.getElementById('password-input').value;
+            const errorMsg = document.getElementById('error-msg');
+            
+            // 👇 Mot de passe défini ici
+            const motDePasseCorrect = "PUNTABRAVA2026";
+
+            if (input === motDePasseCorrect) {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+            } else {
+                errorMsg.style.display = 'block';
+            }
+        }
+
+        // Touche Entrée pour valider le mot de passe
+        document.getElementById('password-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                checkPassword();
+            }
+        });
+
+        // 🚨 TON LIEN WEBHOOK DISCORD
         const webhookURL = "https://discord.com/api/webhooks/1490439964675149845/F4aai6wPCQ5ZOMPaFUyVwZi7WhsHA0RJHnkog96TJDmzplmWK0vHXXf5BumYesOLNWuO";
 
         document.getElementById('darknetForm').addEventListener('submit', function(e) {
-            e.preventDefault(); // Empêche la page de se recharger
+            e.preventDefault();
             
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.innerText = "Chiffrement en cours...";
             submitBtn.disabled = true;
 
-            // Récupération des valeurs
             const alias = document.getElementById('alias').value;
             const produit = document.getElementById('produit').value;
             const quantite = document.getElementById('quantite').value;
             const contact = document.getElementById('contact').value;
             const message = document.getElementById('message').value || "Aucune consigne.";
 
-            // Préparation de l'embed pour Discord
             const discordData = {
                 content: "🚨 **NOUVELLE COMMANDE REÇUE SUR LE DARKNET** 🚨",
                 embeds: [{
-                    color: 65280, // Couleur verte
+                    color: 65280,
                     fields: [
                         { name: "👤 Client (Nom)", value: alias, inline: true },
                         { name: "📞 Contact RP", value: contact, inline: true },
@@ -124,7 +232,6 @@
                 }]
             };
 
-            // Envoi à Discord
             fetch(webhookURL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
