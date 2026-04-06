@@ -28,7 +28,15 @@
     </div>
 
     <script>
-        // METS BIEN TES PROPRES CLÉS FIREBASE ICI !
+        // Verrou de sécurité
+        const masterPassword = "PB_ADMIN_SECURE"; // Tu peux changer ce mot de passe !
+        const entry = prompt("Code d'accès au terminal administrateur :");
+        if (entry !== masterPassword) {
+            alert("ACCÈS REFUSÉ.");
+            window.location.href = "index.html";
+        }
+
+        // Configuration Firebase (Tes vraies clés)
         const firebaseConfig = {
             apiKey: "AIzaSyBCXfgv-L9E-AY2aMMemcrURvDLGOLYXi0",
             authDomain: "punta-brava.firebaseapp.com",
@@ -40,7 +48,7 @@
 
         const produits = ["Weed", "Coke", "Pistolet", "Assaut"];
 
-        // Initialiser les stocks s'ils n'existent pas encore sur Firebase
+        // Créer les stocks s'ils n'existent pas
         database.ref('stocks').once('value', (snapshot) => {
             if (!snapshot.exists()) {
                 database.ref('stocks').set({
@@ -52,7 +60,7 @@
             }
         });
 
-        // Écouter et afficher les boutons
+        // Affichage des boutons en dynamique
         database.ref('stocks').on('value', (snapshot) => {
             const stocks = snapshot.val();
             const container = document.getElementById('admin-content');
