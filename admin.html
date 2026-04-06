@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>PUNTA BRAVA - Terminal Admin</title>
+    <style>
+        body { background-color: #0d0d0d; color: #00ff00; font-family: 'Courier New', Courier, monospace; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; border: 2px solid #00ff00; background-color: #050505; padding: 20px; box-shadow: 0 0 15px rgba(0,255,0,0.2); }
+        h1 { text-align: center; border-bottom: 1px solid #00ff00; padding-bottom: 10px; }
+        .product-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px dashed #333; }
+        .btn { padding: 8px 12px; font-weight: bold; cursor: pointer; font-family: inherit; border: 1px solid #00ff00; background: #000; color: #00ff00; }
+        .btn:hover { background: #00ff00; color: #000; }
+        .btn.active { background: #00ff00; color: #000; box-shadow: 0 0 10px #00ff00; }
+        .btn-none.active { background: #ff3333; color: #fff; border-color: #ff3333; box-shadow: 0 0 10px #ff3333; }
+        .btn-low.active { background: #ffa500; color: #000; border-color: #ffa500; box-shadow: 0 0 10px #ffa500; }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body>
+
+    <div class="container">
+        <h1>[ TERMINAL DE GESTION DES STOCKS ]</h1>
+        <p style="text-align: center; color: #888;">Cliquez sur un état pour le modifier en temps réel.</p>
+
+        <div id="admin-content">
+            </div>
+    </div>
+
+    <script>
+        // METS BIEN TES PROPRES CLÉS FIREBASE ICI !
+        const firebaseConfig = {
+            apiKey: "AIzaSyBCXfgv-L9E-AY2aMMemcrURvDLGOLYXi0",
+            authDomain: "punta-brava.firebaseapp.com",
+            projectId: "punta-brava",
+            databaseURL: "https://punta-brava-default-rtdb.europe-west1.firebasedatabase.app"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        const produits = ["Weed", "Coke", "Pistolet", "Assaut"];
+
+        // Initialiser les stocks s'ils n'existent pas encore sur Firebase
+        database.ref('stocks').once('value', (snapshot) => {
+            if (!snapshot.exists()) {
+                database.ref('stocks').set({
+                    Weed: "ok",
+                    Coke: "low",
+                    Pistolet: "ok",
+                    Assaut: "none"
+                });
+            }
+        });
+
+        // Écouter et afficher les boutons
+        database.ref('stocks').on('value', (snapshot) => {
+            const stocks = snapshot.val();
+            const container = document.getElementById('admin-content');
+            container.innerHTML = "";
+
+            produits.forEach(prod => {
+                const currentStatus = stocks ? stocks[prod] : "ok";
+                container.innerHTML += `
+                    <div class="product-row">
+                        <div style="font-weight: bold;">> ${prod.toUpperCase()}</div>
+                        <div>
+                            <button class="btn ${currentStatus === 'ok' ? 'active' : ''}" onclick="updateStock('${prod}', 'ok')">EN STOCK</button>
+                            <button class="btn btn-low ${currentStatus === 'low' ? 'active' : ''}" onclick="updateStock('${prod}', 'low')">FLUX TENDU</button>
+                            <button class="btn btn-none ${currentStatus === 'none' ? 'active' : ''}" onclick="updateStock('${prod}', 'none')">RUPTURE</button>
+                        </div>
+                    </div>
+                `;
+            });
+        });
+
+        function updateStock(product, status) {
+            database.ref('stocks/' + product).set(status);
+        }
+    </script>
+</body>
+</html>
