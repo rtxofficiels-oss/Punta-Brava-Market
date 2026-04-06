@@ -6,6 +6,22 @@
     <link rel="stylesheet" href="style.css">
     <style>
         /* Styles de base */
+        /* Interdire la sélection du texte */
+        body {
+            -webkit-user-select: none; /* Safari */
+            -moz-user-select: none;    /* Firefox */
+            -ms-user-select: none;     /* IE10+/Edge */
+            user-select: none;         /* Standard */
+        }
+        
+        /* Autoriser quand même la sélection dans les champs de saisie (inputs) */
+        input, textarea, select {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+
         #login-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -94,13 +110,13 @@
         <div class="login-box">
             <h2>ACCÈS RESTREINT</h2>
             <p style="color: #666; font-size: 0.9em;">[ RÉSEAU PUNTA BRAVA ]</p>
-            
+             
             <label style="color: #00ff00; display: block; margin-bottom: 5px; font-size: 0.9em;">> Identifiant Groupe :</label>
             <input type="text" id="group-input" placeholder="Identifiant">
 
             <label style="color: #00ff00; display: block; margin-bottom: 5px; font-size: 0.9em;">> Clé de chiffrement :</label>
             <input type="password" id="password-input" placeholder="••••••••">
-            
+             
             <button id="login-btn" onclick="checkPassword()">S'authentifier</button>
             <p id="error-msg">> ÉCHEC DE L'AUTHENTIFICATION.</p>
         </div>
@@ -112,6 +128,10 @@
             <h1>PUNTA BRAVA - BLACK MARKET</h1>
             <p class="status">> CONNEXION ÉTABLIE / CRYPTAGE ACTIF</p>
             <p style="color: #ffa500; font-size: 0.9em;">Session active pour : <span id="session-group" style="font-weight: bold; color: #fff;"></span></p>
+            
+            <p style="color: #ff3333; font-weight: bold; font-size: 1.2em; margin-top: 10px;">
+                ⏱️ TEMPS AVANT TRAÇAGE LSPD : <span id="timer">02:00</span>
+            </p>
         </header>
 
         <main>
@@ -332,12 +352,59 @@
                     document.getElementById('session-group').innerText = selectedGroup;
                     document.getElementById('login-screen').style.display = 'none';
                     document.getElementById('main-content').style.display = 'block';
+                    
+                    // ON LANCE LE MINUTEUR ICI
+                    startSessionTimer();
                 }
             }).catch((error) => {
                 console.error(error);
                 errorMsg.style.display = 'block'; errorMsg.innerText = "> ERREUR DE CONNEXION.";
                 loginBtn.innerText = "S'authentifier"; loginBtn.disabled = false;
             });
+        }
+
+        // FONCTION DU MINUTEUR DE 2 MINUTES
+        function startSessionTimer() {
+            let timeLeft = 120; // 120 secondes = 2 minutes
+            const timerDisplay = document.getElementById('timer');
+            
+            const countdown = setInterval(() => {
+                let minutes = Math.floor(timeLeft / 60);
+                let seconds = timeLeft % 60;
+                
+                minutes = minutes < 10 ? '0' + minutes : minutes;
+                seconds = seconds < 10 ? '0' + seconds : seconds;
+                
+                timerDisplay.innerText = `${minutes}:${seconds}`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(countdown);
+                    
+                    // 1. Déconnexion de Firebase
+                    const firebaseGroupName = currentGroup.replace(/\s+/g, '_');
+                    database.ref('connected_users/' + firebaseGroupName).remove();
+                    
+                    // 2. Reset des variables et du panier
+                    panier = {};
+                    renderCart();
+                    document.getElementById('darknetForm').reset();
+                    document.querySelectorAll('.qty-input').forEach(el => el.value = "");
+                    
+                    // 3. Retour à l'écran de connexion avec Alerte
+                    document.getElementById('main-content').style.display = 'none';
+                    document.getElementById('login-screen').style.display = 'flex';
+                    
+                    const errorMsg = document.getElementById('error-msg');
+                    errorMsg.style.display = 'block';
+                    errorMsg.innerText = "> SESSION EXPIRÉE : Risque de traçage LSPD trop élevé. Reconnectez-vous.";
+                    
+                    const loginBtn = document.getElementById('login-btn');
+                    loginBtn.innerText = "S'authentifier"; 
+                    loginBtn.disabled = false;
+                }
+                
+                timeLeft--;
+            }, 1000);
         }
 
         document.getElementById('password-input').addEventListener('keypress', function (e) {
@@ -365,7 +432,7 @@
             }
 
             productsText = productsText.slice(0, -2);
-            
+             
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.innerText = "Chiffrement en cours...";
             submitBtn.disabled = true;
@@ -405,7 +472,7 @@
 
             // 2. ENVOI GOOGLE SHEETS
             const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSfnOJV5fYJlKY9e2-aQDYJ8iEsIRRt7wSkmi-x9Dp2p8VKYyg/formResponse";
-            
+             
             const formData = new URLSearchParams();
             formData.append('entry.3134180', alias + " (" + currentGroup + ")"); 
             formData.append('entry.1778551102', productsText); 
@@ -426,11 +493,26 @@
         });
 
         // 🛡️ PROTECTION ANTI-CURIEUX
-        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('contextmenu', e => e.preventDefault()); // Bloque le clic droit
+        
         document.addEventListener('keydown', e => {
+            // Bloque F12
             if (e.key === "F12") e.preventDefault();
+            
+            // Bloque Ctrl+Shift+I et Ctrl+Shift+J (Inspecteur)
             if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) e.preventDefault();
+            
+            // Bloque Ctrl+U (Afficher le code source)
             if (e.ctrlKey && e.key === 'u') e.preventDefault();
+            
+            // Bloque Ctrl+C (Copier)
+            if (e.ctrlKey && e.key === 'c') {
+                e.preventDefault();
+                alert("🔒 Protocole de sécurité : La copie de données est interdite sur ce terminal.");
+            }
+            
+            // Bloque Ctrl+A (Tout sélectionner)
+            if (e.ctrlKey && e.key === 'a') e.preventDefault();
         });
     </script>
 </body>
