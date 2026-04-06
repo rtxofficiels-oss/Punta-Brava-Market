@@ -320,8 +320,7 @@
                 const sessionData = snapshot.val();
                 const now = Date.now();
 
-                // On garde la sécurité "Anti-double-connexion" mais sans timer d'expiration court
-                if (sessionData && (now - sessionData.timestamp < 3600000)) { // 1 heure de battement
+                if (sessionData && (now - sessionData.timestamp < 3600000)) {
                     errorMsg.style.display = 'block';
                     errorMsg.innerText = "> ERREUR : UN APPAREIL EST DÉJÀ CONNECTÉ.";
                     loginBtn.innerText = "S'authentifier"; loginBtn.disabled = false;
@@ -348,21 +347,30 @@
 
         document.getElementById('darknetForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            let productsText = "";
+            
+            let productsOnly = "";
+            let quantitiesOnly = "";
             let cartEmpty = true;
+
             for (const prod in panier) {
                 if (panier[prod].qty > 0) {
-                    productsText += `${prod} (x${panier[prod].qty}), `;
+                    productsOnly += `${prod}, `;
+                    quantitiesOnly += `${panier[prod].qty}, `;
                     cartEmpty = false;
                 }
             }
 
             if (cartEmpty) { alert("Votre panier est vide !"); return; }
-            productsText = productsText.slice(0, -2);
+            
+            // On retire la virgule et l'espace final
+            productsOnly = productsOnly.slice(0, -2);
+            quantitiesOnly = quantitiesOnly.slice(0, -2);
+
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.innerText = "Chiffrement...";
             submitBtn.disabled = true;
 
+            // Préparation Discord
             const discordFields = [
                 { name: "👥 Groupe Faction", value: currentGroup, inline: true },
                 { name: "👤 Client", value: document.getElementById('alias').value, inline: true },
@@ -387,10 +395,12 @@
                 })
             });
 
+            // Préparation Google Form
             const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSfnOJV5fYJlKY9e2-aQDYJ8iEsIRRt7wSkmi-x9Dp2p8VKYyg/formResponse";
             const formData = new URLSearchParams();
             formData.append('entry.3134180', document.getElementById('alias').value + " (" + currentGroup + ")"); 
-            formData.append('entry.1778551102', productsText); 
+            formData.append('entry.1778551102', productsOnly); // Noms des produits
+            formData.append('entry.738962695', quantitiesOnly); // Chiffres des quantités
             formData.append('entry.762486752', document.getElementById('dropzone').value);
             formData.append('entry.561464095', document.getElementById('contact').value);
             formData.append('entry.2107709589', montantTotalCommande + "$");
