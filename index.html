@@ -77,6 +77,45 @@
         #main-content {
             display: none;
         }
+
+        /* STYLES POUR LES VOYANTS DE STOCK */
+        .stock-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            font-size: 0.75em;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-radius: 3px;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
+        .stock-ok {
+            background-color: rgba(0, 255, 0, 0.2);
+            color: #00ff00;
+            border: 1px solid #00ff00;
+        }
+
+        .stock-low {
+            background-color: rgba(255, 165, 0, 0.2);
+            color: #ffa500;
+            border: 1px solid #ffa500;
+        }
+
+        .stock-none {
+            background-color: rgba(255, 0, 0, 0.2);
+            color: #ff0000;
+            border: 1px solid #ff0000;
+        }
+
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px dashed #333;
+            padding-top: 5px;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body>
@@ -109,12 +148,18 @@
                 <div class="item">
                     <div class="item-title">> WEED</div>
                     <div>Pureté garantie, récolte de la semaine. Idéal pour la revente ou la conso.</div>
-                    <div class="price">Prix : 150$ / unité</div>
+                    <div class="price-row">
+                        <div style="color: #fff; font-size: 0.9em;">Prix : 150$ / unité</div>
+                        <span class="stock-badge stock-ok">En Stock</span>
+                    </div>
                 </div>
                 <div class="item">
                     <div class="item-title">> Coke</div>
                     <div>Importation directe du nord. Non coupée. Effet garanti.</div>
-                    <div class="price">Prix : 350$ / unité</div>
+                    <div class="price-row">
+                        <div style="color: #fff; font-size: 0.9em;">Prix : 350$ / unité</div>
+                        <span class="stock-badge stock-low">Flux Tendu</span>
+                    </div>
                 </div>
             </div>
 
@@ -123,12 +168,18 @@
                 <div class="item">
                     <div class="item-title">> Pistolet</div>
                     <div>Idéal pour la défense personnelle en ville, petit calibre efficace. Numéro de série effacé.</div>
-                    <div class="price">Prix : 5 000$</div>
+                    <div class="price-row">
+                        <div style="color: #fff; font-size: 0.9em;">Prix : 5 000$</div>
+                        <span class="stock-badge stock-ok">En Stock</span>
+                    </div>
                 </div>
                 <div class="item">
                     <div class="item-title">> Fusil d'assaut</div>
                     <div>Pour les gros chantiers ou régler les guerres de territoire, parfait pour de la défense ou de la dissuasion.</div>
-                    <div class="price">Prix : 25 000$</div>
+                    <div class="price-row">
+                        <div style="color: #fff; font-size: 0.9em;">Prix : 25 000$</div>
+                        <span class="stock-badge stock-none">Rupture</span>
+                    </div>
                 </div>
             </div>
 
@@ -222,7 +273,7 @@
             const alias = document.getElementById('alias').value;
             const produit = document.getElementById('produit').value;
             const quantite = document.getElementById('quantite').value;
-            const dropzone = document.getElementById('dropzone').value; // Nouveau
+            const dropzone = document.getElementById('dropzone').value;
             const contact = document.getElementById('contact').value;
             const message = document.getElementById('message').value || "Aucune consigne.";
 
@@ -235,7 +286,7 @@
                         { name: "📞 Contact RP", value: contact, inline: true },
                         { name: "📦 Produit", value: produit, inline: true },
                         { name: "🔢 Quantité", value: quantite, inline: true },
-                        { name: "📍 Lieu de largage", value: dropzone, inline: false }, // Nouveau
+                        { name: "📍 Lieu de largage", value: dropzone, inline: false },
                         { name: "📝 Instructions", value: message }
                     ],
                     timestamp: new Date()
