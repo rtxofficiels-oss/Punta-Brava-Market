@@ -52,14 +52,21 @@
             border-top: 1px dashed #333; padding-top: 10px; margin-top: 10px;
         }
 
-        /* BOUTONS AJOUT PANIER */
-        .cart-controls { display: flex; align-items: center; gap: 10px; }
-        .cart-btn {
-            background-color: #111; border: 1px solid #00ff00; color: #00ff00;
-            cursor: pointer; padding: 5px 12px; font-weight: bold; font-size: 1.1em;
+        /* CHAMP QUANTITÉ CLAVIER */
+        .qty-input {
+            background-color: #111;
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            padding: 5px;
+            width: 70px;
+            text-align: center;
+            font-family: inherit;
+            font-weight: bold;
         }
-        .cart-btn:hover { background-color: #00ff00; color: #000; }
-        .item-qty { color: #fff; font-weight: bold; min-width: 20px; text-align: center; }
+        .qty-input:focus {
+            outline: none;
+            box-shadow: 0 0 5px #00ff00;
+        }
 
         /* SECTION PANIER */
         .cart-container {
@@ -108,7 +115,7 @@
         </header>
 
         <main>
-            <p>> Bienvenue. Vos traces ont été effacées. Ajoutez vos produits au panier. Soyez brefs.</p>
+            <p>> Bienvenue. Vos traces ont été effacées. Entrez les quantités souhaitées. Soyez brefs.</p>
 
             <div class="section-title">SECTION : BOTANIQUE</div>
             <div class="grid">
@@ -120,10 +127,9 @@
                             <span style="color: #fff;">150$ / u</span>
                             <span class="stock-badge stock-ok">En Stock</span>
                         </div>
-                        <div class="cart-controls">
-                            <button class="cart-btn" onclick="updateCart('Weed', -1, 150)">-</button>
-                            <span id="qty-Weed" class="item-qty">0</span>
-                            <button class="cart-btn" onclick="updateCart('Weed', 1, 150)">+</button>
+                        <div>
+                            <label style="color: #666; font-size: 0.8em;">Qté : </label>
+                            <input type="number" class="qty-input" id="input-Weed" min="0" placeholder="0" oninput="updateCart('Weed', 150)">
                         </div>
                     </div>
                 </div>
@@ -136,10 +142,9 @@
                             <span style="color: #fff;">350$ / u</span>
                             <span class="stock-badge stock-low">Flux Tendu</span>
                         </div>
-                        <div class="cart-controls">
-                            <button class="cart-btn" onclick="updateCart('Coke', -1, 350)">-</button>
-                            <span id="qty-Coke" class="item-qty">0</span>
-                            <button class="cart-btn" onclick="updateCart('Coke', 1, 350)">+</button>
+                        <div>
+                            <label style="color: #666; font-size: 0.8em;">Qté : </label>
+                            <input type="number" class="qty-input" id="input-Coke" min="0" placeholder="0" oninput="updateCart('Coke', 350)">
                         </div>
                     </div>
                 </div>
@@ -155,10 +160,9 @@
                             <span style="color: #fff;">5 000$ / u</span>
                             <span class="stock-badge stock-ok">En Stock</span>
                         </div>
-                        <div class="cart-controls">
-                            <button class="cart-btn" onclick="updateCart('Pistolet', -1, 5000)">-</button>
-                            <span id="qty-Pistolet" class="item-qty">0</span>
-                            <button class="cart-btn" onclick="updateCart('Pistolet', 1, 5000)">+</button>
+                        <div>
+                            <label style="color: #666; font-size: 0.8em;">Qté : </label>
+                            <input type="number" class="qty-input" id="input-Pistolet" min="0" placeholder="0" oninput="updateCart('Pistolet', 5000)">
                         </div>
                     </div>
                 </div>
@@ -171,10 +175,9 @@
                             <span style="color: #fff;">25 000$ / u</span>
                             <span class="stock-badge stock-none">Rupture</span>
                         </div>
-                        <div class="cart-controls">
-                            <button class="cart-btn" onclick="updateCart('Assaut', -1, 25000)">-</button>
-                            <span id="qty-Assaut" class="item-qty">0</span>
-                            <button class="cart-btn" onclick="updateCart('Assaut', 1, 25000)">+</button>
+                        <div>
+                            <label style="color: #666; font-size: 0.8em;">Qté : </label>
+                            <input type="number" class="qty-input" id="input-Assaut" min="0" placeholder="0" oninput="updateCart('Assaut', 25000)">
                         </div>
                     </div>
                 </div>
@@ -251,17 +254,17 @@
         let currentGroup = "";
         let panier = {};
 
-        // GESTION DU PANIER
-        function updateCart(productName, change, price) {
-            if (!panier[productName]) {
-                panier[productName] = { qty: 0, price: price };
+        // GESTION DU PANIER (Au clavier)
+        function updateCart(productName, price) {
+            const inputVal = document.getElementById('input-' + productName).value;
+            const qty = parseInt(inputVal) || 0; // Si le champ est vide, on prend 0
+
+            if (qty < 0) {
+                document.getElementById('input-' + productName).value = 0;
+                return;
             }
 
-            panier[productName].qty += change;
-
-            if (panier[productName].qty < 0) panier[productName].qty = 0;
-
-            document.getElementById('qty-' + productName).innerText = panier[productName].qty;
+            panier[productName] = { qty: qty, price: price };
             renderCart();
         }
 
@@ -345,7 +348,6 @@
         document.getElementById('darknetForm').addEventListener('submit', function(e) {
             e.preventDefault();
 
-            // Vérification si panier vide
             let productsText = "";
             let cartEmpty = true;
             for (const prod in panier) {
@@ -356,11 +358,10 @@
             }
 
             if (cartEmpty) {
-                alert("Votre panier est vide ! Ajoutez au moins un produit.");
+                alert("Votre panier est vide ! Entrez une quantité sur un produit.");
                 return;
             }
 
-            // Nettoyage de la virgule de fin
             productsText = productsText.slice(0, -2);
             
             const submitBtn = document.getElementById('submitBtn');
@@ -381,7 +382,6 @@
                 { name: "📝 Instructions", value: message, inline: false }
             ];
 
-            // On ajoute chaque produit au embed discord
             for (const prod in panier) {
                 if (panier[prod].qty > 0) {
                     discordFields.push({ name: `📦 ${prod}`, value: `Quantité : **${panier[prod].qty}**`, inline: true });
@@ -404,8 +404,8 @@
             
             const formData = new URLSearchParams();
             formData.append('entry.3134180', alias + " (" + currentGroup + ")");
-            formData.append('entry.1778551102', productsText); // Tous les produits listés ici
-            formData.append('entry.738962695', "Voir liste"); // Évite les bugs de quantité unique
+            formData.append('entry.1778551102', productsText);
+            formData.append('entry.738962695', "Voir liste");
             formData.append('entry.762486752', dropzone);
             formData.append('entry.561464095', contact);
 
@@ -415,8 +415,8 @@
                 document.getElementById('darknetForm').reset();
                 panier = {};
                 renderCart();
-                // Reset visuel des compteurs
-                document.querySelectorAll('.item-qty').forEach(el => el.innerText = "0");
+                // Reset les champs texte de quantité
+                document.querySelectorAll('.qty-input').forEach(el => el.value = "");
             })
             .catch(error => { alert("Erreur lors de la double transmission."); console.error(error); })
             .finally(() => { submitBtn.innerText = "Envoyer le signal"; submitBtn.disabled = false; });
