@@ -404,23 +404,13 @@
             });
 
             // 2. ENVOI GOOGLE SHEETS
-            // 2. ENVOI GOOGLE SHEETS
             const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSfnOJV5fYJlKY9e2-aQDYJ8iEsIRRt7wSkmi-x9Dp2p8VKYyg/formResponse";
             
             const formData = new URLSearchParams();
-            // On envoie le pseudo et le groupe dans la colonne "client"
             formData.append('entry.3134180', alias + " (" + currentGroup + ")"); 
-            
-            // On envoie la liste des produits et leurs quantités dans la colonne "Produit"
             formData.append('entry.1778551102', productsText); 
-            
-            // On envoie le lieu dans la colonne "Lieu"
             formData.append('entry.762486752', dropzone);
-            
-            // On envoie le numéro dans la colonne "Contact"
             formData.append('entry.561464095', contact);
-            
-            // On envoie le prix total calculé dans la colonne "TOTAL"
             formData.append('entry.1843232049', montantTotalCommande + "$");
 
             fetch(formURL, { method: 'POST', mode: 'no-cors', body: formData })
@@ -433,6 +423,7 @@
             })
             .catch(error => { alert("Erreur lors de la double transmission."); console.error(error); })
             .finally(() => { submitBtn.innerText = "Envoyer le signal"; submitBtn.disabled = false; });
+        });
 
         // 🛡️ PROTECTION ANTI-CURIEUX
         document.addEventListener('contextmenu', e => e.preventDefault());
