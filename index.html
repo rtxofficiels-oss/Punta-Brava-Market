@@ -277,6 +277,7 @@
             const contact = document.getElementById('contact').value;
             const message = document.getElementById('message').value || "Aucune consigne.";
 
+            // 1. ENVOI DISCORD
             const discordData = {
                 content: "🚨 **NOUVELLE COMMANDE REÇUE SUR LE DARKNET** 🚨",
                 embeds: [{
@@ -297,17 +298,29 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(discordData)
+            });
+
+            // 2. ENVOI GOOGLE SHEETS (Automatisé avec tes codes)
+            const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSfnOJV5fYJlKY9e2-aQDYJ8iEsIRRt7wSkmi-x9Dp2p8VKYyg/formResponse";
+            
+            const formData = new URLSearchParams();
+            formData.append('entry.3134180', alias);
+            formData.append('entry.1778551102', produit);
+            formData.append('entry.738962695', quantite);
+            formData.append('entry.762486752', dropzone);
+            formData.append('entry.561464095', contact);
+
+            fetch(formURL, {
+                method: 'POST',
+                mode: 'no-cors',
+                body: formData
             })
-            .then(response => {
-                if (response.ok) {
-                    alert("Signal envoyé avec succès dans les tréfonds du réseau. Attendez qu'un livreur vous contacte.");
-                    document.getElementById('darknetForm').reset();
-                } else {
-                    alert("Erreur de connexion avec le réseau sécurisé. Vérifie ton URL de Webhook.");
-                }
+            .then(() => {
+                alert("Signal envoyé avec succès dans les tréfonds du réseau. Attendez qu'un livreur vous contacte.");
+                document.getElementById('darknetForm').reset();
             })
             .catch(error => {
-                alert("Erreur réseau.");
+                alert("Erreur lors de la double transmission.");
                 console.error(error);
             })
             .finally(() => {
