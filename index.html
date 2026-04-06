@@ -1,1 +1,424 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>PUNTA BRAVA - Network</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Styles de base */
+        body {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        input, textarea, select {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
 
+        #login-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #0d0d0d;
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .login-box {
+            border: 2px solid #00ff00;
+            background-color: #050505;
+            padding: 30px; text-align: center;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+            max-width: 400px; width: 90%;
+        }
+        .login-box h2 { color: #00ff00; letter-spacing: 3px; margin-bottom: 20px; text-shadow: 0 0 5px #00ff00; }
+        .login-box input {
+            background-color: #000; border: 1px solid #00ff00; color: #00ff00;
+            padding: 10px; width: 100%; box-sizing: border-box;
+            text-align: center; font-family: inherit; margin-bottom: 15px;
+        }
+        .login-box button {
+            background-color: #00ff00; color: #000; border: none;
+            padding: 10px 20px; font-weight: bold; cursor: pointer;
+            width: 100%; font-family: inherit; text-transform: uppercase;
+        }
+        .login-box button:hover { background-color: #fff; color: #000; }
+        #error-msg { color: #ff3333; font-size: 0.8em; margin-top: 10px; display: none; }
+
+        #main-content { display: none; }
+
+        /* VOYANTS DE STOCK */
+        .stock-badge {
+            display: inline-block; padding: 3px 8px; font-size: 0.75em;
+            font-weight: bold; text-transform: uppercase; border-radius: 3px;
+            margin-left: 10px; vertical-align: middle;
+        }
+        .stock-ok { background-color: rgba(0, 255, 0, 0.2); color: #00ff00; border: 1px solid #00ff00; }
+        .stock-low { background-color: rgba(255, 165, 0, 0.2); color: #ffa500; border: 1px solid #ffa500; }
+        .stock-none { background-color: rgba(255, 0, 0, 0.2); color: #ff0000; border: 1px solid #ff0000; }
+
+        .price-row {
+            display: flex; justify-content: space-between; align-items: center;
+            border-top: 1px dashed #333; padding-top: 10px; margin-top: 10px;
+        }
+
+        .qty-input {
+            background-color: #111;
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            padding: 5px;
+            width: 70px;
+            text-align: center;
+            font-family: inherit;
+            font-weight: bold;
+        }
+        .qty-input:focus {
+            outline: none;
+            box-shadow: 0 0 5px #00ff00;
+        }
+
+        .cart-container {
+            background: #050505; border: 1px solid #00ff00;
+            padding: 20px; margin: 20px 0; box-shadow: 0 0 10px rgba(0,255,0,0.1);
+        }
+        .cart-item {
+            display: flex; justify-content: space-between;
+            padding: 8px 0; border-bottom: 1px solid #222;
+            font-size: 0.9em;
+        }
+        .total-row {
+            display: flex; justify-content: space-between;
+            font-weight: bold; color: #00ff00; font-size: 1.1em;
+            margin-top: 15px; padding-top: 10px; border-top: 2px solid #00ff00;
+        }
+    </style>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body>
+
+    <div id="login-screen">
+        <div class="login-box">
+            <h2>ACCÈS RESTREINT</h2>
+            <p style="color: #666; font-size: 0.9em;">[ RÉSEAU PUNTA BRAVA ]</p>
+             
+            <label style="color: #00ff00; display: block; margin-bottom: 5px; font-size: 0.9em;">> Identifiant Groupe :</label>
+            <input type="text" id="group-input" placeholder="Identifiant">
+
+            <label style="color: #00ff00; display: block; margin-bottom: 5px; font-size: 0.9em;">> Clé de chiffrement :</label>
+            <input type="password" id="password-input" placeholder="••••••••">
+             
+            <button id="login-btn" onclick="checkPassword()">S'authentifier</button>
+            <p id="error-msg">> ÉCHEC DE L'AUTHENTIFICATION.</p>
+        </div>
+    </div>
+
+    <div id="main-content" class="container">
+        <header>
+            <p>[ ACCÈS SÉCURISÉ PAR PROTOCOLE OGN ]</p>
+            <h1>PUNTA BRAVA - BLACK MARKET</h1>
+            <p class="status">> CONNEXION ÉTABLIE / CRYPTAGE ACTIF</p>
+            <p style="color: #ffa500; font-size: 0.9em;">Session active pour : <span id="session-group" style="font-weight: bold; color: #fff;"></span></p>
+        </header>
+
+        <main>
+            <p style="margin-bottom: 20px;">> Bienvenue. Vos traces ont été effacées. Entrez les quantités souhaitées. Soyez brefs.</p>
+
+            <div class="section-title">SECTION : BOTANIQUE</div>
+            <div class="grid">
+                <div class="item">
+                    <div class="item-title">> WEED</div>
+                    <div>Pureté garantie, récolte de la semaine.</div>
+                    <div class="price-row">
+                        <div>
+                            <span style="color: #fff;">150$ / u</span>
+                            <span class="stock-badge stock-ok">En Stock</span>
+                        </div>
+                        <div>
+                            <label style="color: #666; font-size: 0.8em;">Qté : </label>
+                            <input type="number" class="qty-input" id="input-Weed" min="0" placeholder="0" oninput="updateCart('Weed', 150)">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <div class="item-title">> COKE</div>
+                    <div>Importation directe du nord. Non coupée.</div>
+                    <div class="price-row">
+                        <div>
+                            <span style="color: #fff;">350$ / u</span>
+                            <span class="stock-badge stock-low">Flux Tendu</span>
+                        </div>
+                        <div>
+                            <label style="color: #666; font-size: 0.8em;">Qté : </label>
+                            <input type="number" class="qty-input" id="input-Coke" min="0" placeholder="0" oninput="updateCart('Coke', 350)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">SECTION : QUINCAILLERIE</div>
+            <div class="grid">
+                <div class="item">
+                    <div class="item-title">> PISTOLET</div>
+                    <div>Petit calibre efficace. Numéro effacé.</div>
+                    <div class="price-row">
+                        <div>
+                            <span style="color: #fff;">5 000$ / u</span>
+                            <span class="stock-badge stock-low">Flux Tendu</span>
+                        </div>
+                        <div>
+                            <label style="color: #666; font-size: 0.8em;">Qté : </label>
+                            <input type="number" class="qty-input" id="input-Pistolet" min="0" placeholder="0" oninput="updateCart('Pistolet', 5000)">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="item">
+                    <div class="item-title">> FUSIL D'ASSAUT</div>
+                    <div>Parfait pour de la défense ou dissuasion.</div>
+                    <div class="price-row">
+                        <div>
+                            <span style="color: #fff;">25 000$ / u</span>
+                            <span class="stock-badge stock-none">Rupture</span>
+                        </div>
+                        <div>
+                            <label style="color: #666; font-size: 0.8em;">Qté : </label>
+                            <input type="number" class="qty-input" id="input-Assaut" min="0" placeholder="0" oninput="updateCart('Assaut', 25000)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">VOTRE COMMANDE</div>
+            <div class="cart-container">
+                <div id="cart-list" style="color: #888;">> Votre panier est vide.</div>
+                <div class="total-row">
+                    <span>TOTAL ESTIMÉ :</span>
+                    <span id="cart-total">0$</span>
+                </div>
+            </div>
+
+            <div class="section-title">TRANSMISSION DE COMMANDE</div>
+            <form id="darknetForm">
+                <div class="form-group">
+                    <label for="alias">> Votre Nom :</label>
+                    <input type="text" id="alias" placeholder="Ex: Ghost_99" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="dropzone">> POINT DE LARGAGE :</label>
+                    <select id="dropzone" required>
+                        <option value="">-- Choisir un lieu de dépôt sécurisé --</option>
+                        <option value="Phare d'El Gordo">Le Phare d'El Gordo (Nord-Est)</option>
+                        <option value="Parking Motel Abandonné">Derrière le motel abandonné (Sandy Shores)</option>
+                        <option value="Conteneurs Docks">Sous les conteneurs bleus (Docks de LS)</option>
+                        <option value="Benne à ordure ruelle">Dans la ruelle derrière le Benny's</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="contact">> MOYEN DE CONTACT (Téléphone) :</label>
+                    <input type="text" id="contact" placeholder="Ton N° de téléphone ou ton Email IG" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="message">> INSTRUCTIONS PARTICULIÈRES :</label>
+                    <textarea id="message" rows="4" placeholder="Tape ton texte ici..."></textarea>
+                </div>
+
+                <button type="submit" id="submitBtn">Envoyer le signal</button>
+            </form>
+        </main>
+
+        <div class="footer-note">
+            ⚠️ Si vous êtes de la LSPD, sachez que ce site n'existe pas. Bonne journée.
+        </div>
+    </div>
+
+    <script>
+        // 🔑 COMPTES
+        const listeComptes = {
+            "La Main Noir": "MN-6789", "Romano": "ROM-1234", "Madrazo": "MAD-5555",
+            "The Lost MC": "LOST-88", "AOD": "AOD-1%er", "Favela": "FAV-999",
+            "85 Block": "BLOCK-85", "Admin1": "Admin1è5é1", "Admin2": "Admin2è3é6_",
+            "Admin3": "Admin3è0é9à3", "GameMaster": "GamemAster12è3é6", "Spectra": "SPEC-00"
+        };
+
+        // 🔥 FIREBASE
+        const firebaseConfig = {
+            apiKey: "AIzaSyBCXfgv-L9E-AY2aMMemcrURvDLGOLYXi0",
+            authDomain: "punta-brava.firebaseapp.com",
+            projectId: "punta-brava",
+            storageBucket: "punta-brava.firebasestorage.app",
+            messagingSenderId: "982313103927",
+            appId: "1:982313103927:web:de9acfbea2d503b45945b2",
+            databaseURL: "https://punta-brava-default-rtdb.europe-west1.firebasedatabase.app"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        let currentGroup = "";
+        let panier = {};
+        let montantTotalCommande = 0;
+
+        function updateCart(productName, price) {
+            const inputVal = document.getElementById('input-' + productName).value;
+            const qty = parseInt(inputVal) || 0;
+            if (qty < 0) { document.getElementById('input-' + productName).value = 0; return; }
+            panier[productName] = { qty: qty, price: price };
+            renderCart();
+        }
+
+        function renderCart() {
+            const cartListDiv = document.getElementById('cart-list');
+            const cartTotalDiv = document.getElementById('cart-total');
+            cartListDiv.innerHTML = "";
+            let total = 0;
+            let hasItems = false;
+
+            for (const prod in panier) {
+                if (panier[prod].qty > 0) {
+                    hasItems = true;
+                    const subTotal = panier[prod].qty * panier[prod].price;
+                    total += subTotal;
+                    cartListDiv.innerHTML += `
+                        <div class="cart-item">
+                            <span>> ${prod} (x${panier[prod].qty})</span>
+                            <span>${subTotal.toLocaleString()}$</span>
+                        </div>`;
+                }
+            }
+            if (!hasItems) { cartListDiv.innerHTML = "> Votre panier est vide."; }
+            montantTotalCommande = total;
+            cartTotalDiv.innerText = total.toLocaleString() + "$";
+        }
+
+        function checkPassword() {
+            const selectedGroup = document.getElementById('group-input').value.trim();
+            const inputPass = document.getElementById('password-input').value;
+            const errorMsg = document.getElementById('error-msg');
+            const loginBtn = document.getElementById('login-btn');
+
+            loginBtn.innerText = "Vérification...";
+            loginBtn.disabled = true;
+
+            if (!listeComptes[selectedGroup] || listeComptes[selectedGroup] !== inputPass) {
+                errorMsg.style.display = 'block';
+                errorMsg.innerText = "> IDENTIFIANTS OU CLÉ INCORRECTS.";
+                loginBtn.innerText = "S'authentifier"; loginBtn.disabled = false;
+                return;
+            }
+
+            const firebaseGroupName = selectedGroup.replace(/\s+/g, '_');
+            database.ref('connected_users/' + firebaseGroupName).once('value').then((snapshot) => {
+                const sessionData = snapshot.val();
+                const now = Date.now();
+
+                if (sessionData && (now - sessionData.timestamp < 3600000)) {
+                    errorMsg.style.display = 'block';
+                    errorMsg.innerText = "> ERREUR : UN APPAREIL EST DÉJÀ CONNECTÉ.";
+                    loginBtn.innerText = "S'authentifier"; loginBtn.disabled = false;
+                } else {
+                    database.ref('connected_users/' + firebaseGroupName).set({ connected: true, timestamp: now });
+                    database.ref('connected_users/' + firebaseGroupName).onDisconnect().remove();
+
+                    currentGroup = selectedGroup;
+                    document.getElementById('session-group').innerText = selectedGroup;
+                    document.getElementById('login-screen').style.display = 'none';
+                    document.getElementById('main-content').style.display = 'block';
+                }
+            }).catch((error) => {
+                errorMsg.style.display = 'block'; errorMsg.innerText = "> ERREUR DE CONNEXION.";
+                loginBtn.innerText = "S'authentifier"; loginBtn.disabled = false;
+            });
+        }
+
+        document.getElementById('password-input').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') checkPassword();
+        });
+
+        const webhookURL = "https://discord.com/api/webhooks/1490439964675149845/F4aai6wPCQ5ZOMPaFUyVwZi7WhsHA0RJHnkog96TJDmzplmWK0vHXXf5BumYesOLNWuO";
+
+        document.getElementById('darknetForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            let productsOnly = "";
+            let quantitiesOnly = "";
+            let cartEmpty = true;
+
+            for (const prod in panier) {
+                if (panier[prod].qty > 0) {
+                    productsOnly += `${prod}, `;
+                    quantitiesOnly += `${panier[prod].qty}, `;
+                    cartEmpty = false;
+                }
+            }
+
+            if (cartEmpty) { alert("Votre panier est vide !"); return; }
+            
+            // On retire la virgule et l'espace final
+            productsOnly = productsOnly.slice(0, -2);
+            quantitiesOnly = quantitiesOnly.slice(0, -2);
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.innerText = "Chiffrement...";
+            submitBtn.disabled = true;
+
+            // Préparation Discord
+            const discordFields = [
+                { name: "👥 Groupe Faction", value: currentGroup, inline: true },
+                { name: "👤 Client", value: document.getElementById('alias').value, inline: true },
+                { name: "📞 Contact", value: document.getElementById('contact').value, inline: true },
+                { name: "📍 Lieu", value: document.getElementById('dropzone').value, inline: false },
+                { name: "📝 Instructions", value: document.getElementById('message').value || "Aucune.", inline: false }
+            ];
+
+            for (const prod in panier) {
+                if (panier[prod].qty > 0) {
+                    discordFields.push({ name: `📦 ${prod}`, value: `Quantité : **${panier[prod].qty}**`, inline: true });
+                }
+            }
+            discordFields.push({ name: "💰 TOTAL", value: `**${montantTotalCommande.toLocaleString()}$**`, inline: false });
+
+            fetch(webhookURL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    content: "🚨 **NOUVELLE COMMANDE DARKNET** 🚨",
+                    embeds: [{ color: 65280, fields: discordFields, timestamp: new Date() }]
+                })
+            });
+
+            // Préparation Google Form
+            const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSfnOJV5fYJlKY9e2-aQDYJ8iEsIRRt7wSkmi-x9Dp2p8VKYyg/formResponse";
+            const formData = new URLSearchParams();
+            formData.append('entry.3134180', document.getElementById('alias').value + " (" + currentGroup + ")"); 
+            formData.append('entry.1778551102', productsOnly); // Noms des produits
+            formData.append('entry.738962695', quantitiesOnly); // Chiffres des quantités
+            formData.append('entry.762486752', document.getElementById('dropzone').value);
+            formData.append('entry.561464095', document.getElementById('contact').value);
+            formData.append('entry.2107709589', montantTotalCommande + "$");
+
+            fetch(formURL, { method: 'POST', mode: 'no-cors', body: formData })
+            .then(() => {
+                alert("Signal envoyé avec succès.");
+                document.getElementById('darknetForm').reset();
+                panier = {}; renderCart();
+                document.querySelectorAll('.qty-input').forEach(el => el.value = "");
+            })
+            .finally(() => { submitBtn.innerText = "Envoyer le signal"; submitBtn.disabled = false; });
+        });
+
+        document.addEventListener('contextmenu', e => e.preventDefault());
+        document.addEventListener('keydown', e => {
+            if (e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) || (e.ctrlKey && e.key === 'u')) e.preventDefault();
+        });
+    </script>
+</body>
+</html>
