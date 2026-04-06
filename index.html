@@ -6,36 +6,24 @@
     <link rel="stylesheet" href="style.css">
     <style>
         /* Styles de base */
-        /* Interdire la sélection du texte */
         body {
-            -webkit-user-select: none; /* Safari */
-            -moz-user-select: none;    /* Firefox */
-            -ms-user-select: none;     /* IE10+/Edge */
-            user-select: none;         /* Standard */
+            -webkit-user-select: none; -moz-user-select: none;
+            -ms-user-select: none; user-select: none;
         }
         
-        /* Autoriser quand même la sélection dans les champs de saisie (inputs) */
         input, textarea, select {
-            -webkit-user-select: text;
-            -moz-user-select: text;
-            -ms-user-select: text;
-            user-select: text;
+            -webkit-user-select: text; -moz-user-select: text;
+            -ms-user-select: text; user-select: text;
         }
 
         #login-screen {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #0d0d0d;
-            display: flex; justify-content: center; align-items: center;
-            z-index: 9999;
-            font-family: 'Courier New', Courier, monospace;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #0d0d0d; display: flex; justify-content: center; align-items: center;
+            z-index: 9999; font-family: 'Courier New', Courier, monospace;
         }
         .login-box {
-            border: 2px solid #00ff00;
-            background-color: #050505;
-            padding: 30px; text-align: center;
-            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
-            max-width: 400px; width: 90%;
+            border: 2px solid #00ff00; background-color: #050505; padding: 30px; text-align: center;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2); max-width: 400px; width: 90%;
         }
         .login-box h2 { color: #00ff00; letter-spacing: 3px; margin-bottom: 20px; text-shadow: 0 0 5px #00ff00; }
         .login-box input {
@@ -68,31 +56,19 @@
             border-top: 1px dashed #333; padding-top: 10px; margin-top: 10px;
         }
 
-        /* CHAMP QUANTITÉ CLAVIER */
         .qty-input {
-            background-color: #111;
-            border: 1px solid #00ff00;
-            color: #00ff00;
-            padding: 5px;
-            width: 70px;
-            text-align: center;
-            font-family: inherit;
-            font-weight: bold;
+            background-color: #111; border: 1px solid #00ff00; color: #00ff00;
+            padding: 5px; width: 70px; text-align: center; font-family: inherit; font-weight: bold;
         }
-        .qty-input:focus {
-            outline: none;
-            box-shadow: 0 0 5px #00ff00;
-        }
+        .qty-input:focus { outline: none; box-shadow: 0 0 5px #00ff00; }
 
-        /* SECTION PANIER */
         .cart-container {
             background: #050505; border: 1px solid #00ff00;
             padding: 20px; margin: 20px 0; box-shadow: 0 0 10px rgba(0,255,0,0.1);
         }
         .cart-item {
             display: flex; justify-content: space-between;
-            padding: 8px 0; border-bottom: 1px solid #222;
-            font-size: 0.9em;
+            padding: 8px 0; border-bottom: 1px solid #222; font-size: 0.9em;
         }
         .total-row {
             display: flex; justify-content: space-between;
@@ -145,7 +121,7 @@
                     <div class="price-row">
                         <div>
                             <span style="color: #fff;">150$ / u</span>
-                            <span class="stock-badge stock-ok">En Stock</span>
+                            <span id="stock-Weed" class="stock-badge stock-ok">Chargement...</span>
                         </div>
                         <div>
                             <label style="color: #666; font-size: 0.8em;">Qté : </label>
@@ -160,7 +136,7 @@
                     <div class="price-row">
                         <div>
                             <span style="color: #fff;">350$ / u</span>
-                            <span class="stock-badge stock-low">Flux Tendu</span>
+                            <span id="stock-Coke" class="stock-badge stock-low">Chargement...</span>
                         </div>
                         <div>
                             <label style="color: #666; font-size: 0.8em;">Qté : </label>
@@ -178,7 +154,7 @@
                     <div class="price-row">
                         <div>
                             <span style="color: #fff;">5 000$ / u</span>
-                            <span class="stock-badge stock-ok">En Stock</span>
+                            <span id="stock-Pistolet" class="stock-badge stock-ok">Chargement...</span>
                         </div>
                         <div>
                             <label style="color: #666; font-size: 0.8em;">Qté : </label>
@@ -193,7 +169,7 @@
                     <div class="price-row">
                         <div>
                             <span style="color: #fff;">25 000$ / u</span>
-                            <span class="stock-badge stock-none">Rupture</span>
+                            <span id="stock-Assaut" class="stock-badge stock-none">Chargement...</span>
                         </div>
                         <div>
                             <label style="color: #666; font-size: 0.8em;">Qté : </label>
@@ -275,16 +251,41 @@
         let panier = {};
         let montantTotalCommande = 0;
 
-        // GESTION DU PANIER
+        // 📦 GESTION DES STOCKS EN TEMPS RÉEL
+        function listenToStocks() {
+            database.ref('stocks').on('value', (snapshot) => {
+                const stocks = snapshot.val();
+                if (!stocks) return;
+
+                const produits = ["Weed", "Coke", "Pistolet", "Assaut"];
+                produits.forEach(prod => {
+                    const badge = document.getElementById('stock-' + prod);
+                    const input = document.getElementById('input-' + prod);
+                    if (!badge) return;
+
+                    if (stocks[prod] === "ok") {
+                        badge.className = "stock-badge stock-ok";
+                        badge.innerText = "En Stock";
+                        if (input) input.disabled = false;
+                    } else if (stocks[prod] === "low") {
+                        badge.className = "stock-badge stock-low";
+                        badge.innerText = "Flux Tendu";
+                        if (input) input.disabled = false;
+                    } else if (stocks[prod] === "none") {
+                        badge.className = "stock-badge stock-none";
+                        badge.innerText = "Rupture";
+                        if (input) { input.value = ""; input.disabled = true; }
+                        if (panier[prod]) delete panier[prod];
+                        renderCart();
+                    }
+                });
+            });
+        }
+
         function updateCart(productName, price) {
             const inputVal = document.getElementById('input-' + productName).value;
             const qty = parseInt(inputVal) || 0;
-
-            if (qty < 0) {
-                document.getElementById('input-' + productName).value = 0;
-                return;
-            }
-
+            if (qty < 0) { document.getElementById('input-' + productName).value = 0; return; }
             panier[productName] = { qty: qty, price: price };
             renderCart();
         }
@@ -293,7 +294,6 @@
             const cartListDiv = document.getElementById('cart-list');
             const cartTotalDiv = document.getElementById('cart-total');
             cartListDiv.innerHTML = "";
-            
             let total = 0;
             let hasItems = false;
 
@@ -302,23 +302,14 @@
                     hasItems = true;
                     const subTotal = panier[prod].qty * panier[prod].price;
                     total += subTotal;
-                    cartListDiv.innerHTML += `
-                        <div class="cart-item">
-                            <span>> ${prod} (x${panier[prod].qty})</span>
-                            <span>${subTotal.toLocaleString()}$</span>
-                        </div>`;
+                    cartListDiv.innerHTML += `<div class="cart-item"><span>> ${prod} (x${panier[prod].qty})</span><span>${subTotal.toLocaleString()}$</span></div>`;
                 }
             }
-
-            if (!hasItems) {
-                cartListDiv.innerHTML = "> Votre panier est vide.";
-            }
-
+            if (!hasItems) cartListDiv.innerHTML = "> Votre panier est vide.";
             montantTotalCommande = total;
             cartTotalDiv.innerText = total.toLocaleString() + "$";
         }
 
-        // CONNEXION
         function checkPassword() {
             const selectedGroup = document.getElementById('group-input').value.trim();
             const inputPass = document.getElementById('password-input').value;
@@ -329,8 +320,7 @@
             loginBtn.disabled = true;
 
             if (!listeComptes[selectedGroup] || listeComptes[selectedGroup] !== inputPass) {
-                errorMsg.style.display = 'block';
-                errorMsg.innerText = "> IDENTIFIANTS OU CLÉ INCORRECTS.";
+                errorMsg.style.display = 'block'; errorMsg.innerText = "> IDENTIFIANTS OU CLÉ INCORRECTS.";
                 loginBtn.innerText = "S'authentifier"; loginBtn.disabled = false;
                 return;
             }
@@ -341,108 +331,70 @@
                 const now = Date.now();
 
                 if (sessionData && (now - sessionData.timestamp < 600000)) {
-                    errorMsg.style.display = 'block';
-                    errorMsg.innerText = "> ERREUR : UN APPAREIL EST DÉJÀ CONNECTÉ.";
+                    errorMsg.style.display = 'block'; errorMsg.innerText = "> ERREUR : UN APPAREIL EST DÉJÀ CONNECTÉ.";
                     loginBtn.innerText = "S'authentifier"; loginBtn.disabled = false;
                 } else {
                     database.ref('connected_users/' + firebaseGroupName).set({ connected: true, timestamp: now });
                     database.ref('connected_users/' + firebaseGroupName).onDisconnect().remove();
-
                     currentGroup = selectedGroup;
                     document.getElementById('session-group').innerText = selectedGroup;
                     document.getElementById('login-screen').style.display = 'none';
                     document.getElementById('main-content').style.display = 'block';
-                    
-                    // ON LANCE LE MINUTEUR ICI
                     startSessionTimer();
+                    listenToStocks(); // <--- Lecture des stocks au démarrage
                 }
             }).catch((error) => {
-                console.error(error);
                 errorMsg.style.display = 'block'; errorMsg.innerText = "> ERREUR DE CONNEXION.";
                 loginBtn.innerText = "S'authentifier"; loginBtn.disabled = false;
             });
         }
 
-        // FONCTION DU MINUTEUR DE 2 MINUTES
         function startSessionTimer() {
-            let timeLeft = 120; // 120 secondes = 2 minutes
+            let timeLeft = 120;
             const timerDisplay = document.getElementById('timer');
-            
             const countdown = setInterval(() => {
                 let minutes = Math.floor(timeLeft / 60);
                 let seconds = timeLeft % 60;
-                
                 minutes = minutes < 10 ? '0' + minutes : minutes;
                 seconds = seconds < 10 ? '0' + seconds : seconds;
-                
                 timerDisplay.innerText = `${minutes}:${seconds}`;
-                
                 if (timeLeft <= 0) {
                     clearInterval(countdown);
-                    
-                    // 1. Déconnexion de Firebase
                     const firebaseGroupName = currentGroup.replace(/\s+/g, '_');
                     database.ref('connected_users/' + firebaseGroupName).remove();
-                    
-                    // 2. Reset des variables et du panier
-                    panier = {};
-                    renderCart();
+                    panier = {}; renderCart();
                     document.getElementById('darknetForm').reset();
                     document.querySelectorAll('.qty-input').forEach(el => el.value = "");
-                    
-                    // 3. Retour à l'écran de connexion avec Alerte
                     document.getElementById('main-content').style.display = 'none';
                     document.getElementById('login-screen').style.display = 'flex';
-                    
                     const errorMsg = document.getElementById('error-msg');
-                    errorMsg.style.display = 'block';
-                    errorMsg.innerText = "> SESSION EXPIRÉE : Risque de traçage LSPD trop élevé. Reconnectez-vous.";
-                    
+                    errorMsg.style.display = 'block'; errorMsg.innerText = "> SESSION EXPIRÉE : Risque élevé. Reconnectez-vous.";
                     const loginBtn = document.getElementById('login-btn');
-                    loginBtn.innerText = "S'authentifier"; 
-                    loginBtn.disabled = false;
+                    loginBtn.innerText = "S'authentifier"; loginBtn.disabled = false;
                 }
-                
                 timeLeft--;
             }, 1000);
         }
 
-        document.getElementById('password-input').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') checkPassword();
-        });
+        document.getElementById('password-input').addEventListener('keypress', e => { if (e.key === 'Enter') checkPassword(); });
 
-        // ENVOI FORMULAIRE
         const webhookURL = "https://discord.com/api/webhooks/1490439964675149845/F4aai6wPCQ5ZOMPaFUyVwZi7WhsHA0RJHnkog96TJDmzplmWK0vHXXf5BumYesOLNWuO";
 
         document.getElementById('darknetForm').addEventListener('submit', function(e) {
             e.preventDefault();
-
-            let productsText = "";
-            let cartEmpty = true;
+            let productsText = ""; let cartEmpty = true;
             for (const prod in panier) {
-                if (panier[prod].qty > 0) {
-                    productsText += `${prod} (x${panier[prod].qty}), `;
-                    cartEmpty = false;
-                }
+                if (panier[prod].qty > 0) { productsText += `${prod} (x${panier[prod].qty}), `; cartEmpty = false; }
             }
-
-            if (cartEmpty) {
-                alert("Votre panier est vide ! Entrez une quantité sur un produit.");
-                return;
-            }
-
+            if (cartEmpty) { alert("Votre panier est vide !"); return; }
             productsText = productsText.slice(0, -2);
-             
             const submitBtn = document.getElementById('submitBtn');
-            submitBtn.innerText = "Chiffrement en cours...";
-            submitBtn.disabled = true;
-
+            submitBtn.innerText = "Chiffrement..."; submitBtn.disabled = true;
             const alias = document.getElementById('alias').value;
             const dropzone = document.getElementById('dropzone').value;
             const contact = document.getElementById('contact').value;
-            const message = document.getElementById('message').value || "Aucune consigne.";
+            const message = document.getElementById('message').value || "Aucune.";
 
-            // 1. ENVOI DISCORD
             let discordFields = [
                 { name: "👥 Groupe Faction", value: currentGroup, inline: true },
                 { name: "👤 Client (Nom)", value: alias, inline: true },
@@ -450,69 +402,38 @@
                 { name: "📍 Lieu de largage", value: dropzone, inline: false },
                 { name: "📝 Instructions", value: message, inline: false }
             ];
-
             for (const prod in panier) {
-                if (panier[prod].qty > 0) {
-                    discordFields.push({ name: `📦 ${prod}`, value: `Quantité : **${panier[prod].qty}**`, inline: true });
-                }
+                if (panier[prod].qty > 0) discordFields.push({ name: `📦 ${prod}`, value: `Quantité : **${panier[prod].qty}**`, inline: true });
             }
-
             discordFields.push({ name: "💰 MONTANT TOTAL", value: `**${montantTotalCommande.toLocaleString()}$**`, inline: false });
 
-            const discordData = {
-                content: "🚨 **NOUVELLE COMMANDE REÇUE SUR LE DARKNET** 🚨",
-                embeds: [{ color: 65280, fields: discordFields, timestamp: new Date() }]
-            };
-
             fetch(webhookURL, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(discordData)
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: "🚨 **COMMANDE DARKNET** 🚨", embeds: [{ color: 65280, fields: discordFields, timestamp: new Date() }] })
             });
 
-            // 2. ENVOI GOOGLE SHEETS
             const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSfnOJV5fYJlKY9e2-aQDYJ8iEsIRRt7wSkmi-x9Dp2p8VKYyg/formResponse";
-             
             const formData = new URLSearchParams();
-            formData.append('entry.3134180', alias + " (" + currentGroup + ")"); 
-            formData.append('entry.1778551102', productsText); 
+            formData.append('entry.3134180', alias + " (" + currentGroup + ")");
+            formData.append('entry.1778551102', productsText);
             formData.append('entry.762486752', dropzone);
             formData.append('entry.561464095', contact);
             formData.append('entry.2107709589', montantTotalCommande + "$");
 
             fetch(formURL, { method: 'POST', mode: 'no-cors', body: formData })
             .then(() => {
-                alert("Signal envoyé avec succès dans les tréfonds du réseau.");
+                alert("Signal envoyé avec succès.");
                 document.getElementById('darknetForm').reset();
-                panier = {};
-                renderCart();
+                panier = {}; renderCart();
                 document.querySelectorAll('.qty-input').forEach(el => el.value = "");
             })
-            .catch(error => { alert("Erreur lors de la double transmission."); console.error(error); })
             .finally(() => { submitBtn.innerText = "Envoyer le signal"; submitBtn.disabled = false; });
         });
 
-        // 🛡️ PROTECTION ANTI-CURIEUX
-        document.addEventListener('contextmenu', e => e.preventDefault()); // Bloque le clic droit
-        
+        document.addEventListener('contextmenu', e => e.preventDefault());
         document.addEventListener('keydown', e => {
-            // Bloque F12
-            if (e.key === "F12") e.preventDefault();
-            
-            // Bloque Ctrl+Shift+I et Ctrl+Shift+J (Inspecteur)
-            if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) e.preventDefault();
-            
-            // Bloque Ctrl+U (Afficher le code source)
-            if (e.ctrlKey && e.key === 'u') e.preventDefault();
-            
-            // Bloque Ctrl+C (Copier)
-            if (e.ctrlKey && e.key === 'c') {
-                e.preventDefault();
-                alert("🔒 Protocole de sécurité : La copie de données est interdite sur ce terminal.");
-            }
-            
-            // Bloque Ctrl+A (Tout sélectionner)
-            if (e.ctrlKey && e.key === 'a') e.preventDefault();
+            if (e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) || (e.ctrlKey && e.key === 'u') || (e.ctrlKey && e.key === 'a')) e.preventDefault();
+            if (e.ctrlKey && e.key === 'c') { e.preventDefault(); alert("🔒 Copie interdite."); }
         });
     </script>
 </body>
