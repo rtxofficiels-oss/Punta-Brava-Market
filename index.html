@@ -95,6 +95,22 @@
             font-weight: bold; color: #00ff00; font-size: 1.1em;
             margin-top: 15px; padding-top: 10px; border-top: 2px solid #00ff00;
         }
+
+        /* --- NOUVEAUX STYLES ADMIN --- */
+        #btn-admin-access { 
+            display: none; background: #c60000; color: #fff; padding: 15px; 
+            text-align: center; cursor: pointer; font-weight: bold; margin: 10px 0;
+            border: 2px solid #ff0000; font-family: 'Courier New', Courier, monospace;
+        }
+        #admin-panel {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 10000; padding: 20px; box-sizing: border-box;
+            font-family: 'Courier New', Courier, monospace; overflow-y: auto;
+        }
+        .admin-table { width: 100%; border-collapse: collapse; color: #00ff00; margin-top: 20px; }
+        .admin-table th, .admin-table td { border: 1px solid #00ff00; padding: 10px; text-align: left; }
+        .status-online { color: #00ff00; font-weight: bold; }
+        .status-offline { color: #555; }
     </style>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -118,7 +134,26 @@
         </div>
     </div>
 
+    <!-- PANEL ADMIN -->
+    <div id="admin-panel">
+        <h2 style="color: #00ff00; border-bottom: 2px solid #00ff00;">LOGS DES CONNEXIONS RESEAU</h2>
+        <button onclick="document.getElementById('admin-panel').style.display='none'" style="background: #00ff00; border:none; padding: 10px; cursor:pointer; font-weight:bold;">RETOURNER AU MARCHE</button>
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>GROUPE</th>
+                    <th>STATUT</th>
+                    <th>DERNIER SIGNAL</th>
+                </tr>
+            </thead>
+            <tbody id="admin-rows"></tbody>
+        </table>
+    </div>
+
     <div id="main-content" class="container">
+        <!-- BOUTON D'ACCÈS ADMIN -->
+        <div id="btn-admin-access" onclick="openAdminPanel()">⚠️ ACCÉDER AU PANEL DE SUPERVISION ⚠️</div>
+
         <header>
             <p>[ ACCÈS SÉCURISÉ PAR PROTOCOLE OGN ]</p>
             <h1>PUNTA BRAVA - BLACK MARKET</h1>
@@ -242,7 +277,6 @@
     </div>
 
     <script>
-        // 🔑 COMPTES
         const listeComptes = {
             "La Main Noir": "MN-6789", "Romano": "ROM-1234", "Madrazo": "MAD-5555",
             "The Lost MC": "LOST-88", "AOD": "AOD-1%er", "Favela": "FAV-999",
@@ -250,7 +284,6 @@
             "Admin3": "Admin3è0é9à3", "GameMaster": "GamemAster12è3é6", "Spectra": "SPEC-00"
         };
 
-        // 🔥 FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyBCXfgv-L9E-AY2aMMemcrURvDLGOLYXi0",
             authDomain: "punta-brava.firebaseapp.com",
@@ -281,17 +314,12 @@
             cartListDiv.innerHTML = "";
             let total = 0;
             let hasItems = false;
-
             for (const prod in panier) {
                 if (panier[prod].qty > 0) {
                     hasItems = true;
                     const subTotal = panier[prod].qty * panier[prod].price;
                     total += subTotal;
-                    cartListDiv.innerHTML += `
-                        <div class="cart-item">
-                            <span>> ${prod} (x${panier[prod].qty})</span>
-                            <span>${subTotal.toLocaleString()}$</span>
-                        </div>`;
+                    cartListDiv.innerHTML += `<div class="cart-item"><span>> ${prod} (x${panier[prod].qty})</span><span>${subTotal.toLocaleString()}$</span></div>`;
                 }
             }
             if (!hasItems) { cartListDiv.innerHTML = "> Votre panier est vide."; }
@@ -319,23 +347,42 @@
             database.ref('connected_users/' + firebaseGroupName).once('value').then((snapshot) => {
                 const sessionData = snapshot.val();
                 const now = Date.now();
-
                 if (sessionData && (now - sessionData.timestamp < 3600000)) {
                     errorMsg.style.display = 'block';
                     errorMsg.innerText = "> ERREUR : UN APPAREIL EST DÉJÀ CONNECTÉ.";
                     loginBtn.innerText = "S'authentifier"; loginBtn.disabled = false;
                 } else {
-                    database.ref('connected_users/' + firebaseGroupName).set({ connected: true, timestamp: now });
+                    database.ref('connected_users/' + firebaseGroupName).set({ connected: true, timestamp: now, lastSeen: new Date().toLocaleTimeString() });
                     database.ref('connected_users/' + firebaseGroupName).onDisconnect().remove();
 
                     currentGroup = selectedGroup;
                     document.getElementById('session-group').innerText = selectedGroup;
                     document.getElementById('login-screen').style.display = 'none';
                     document.getElementById('main-content').style.display = 'block';
+                    
+                    if (selectedGroup.includes("Admin")) {
+                        document.getElementById('btn-admin-access').style.display = 'block';
+                    }
                 }
-            }).catch((error) => {
+            }).catch(() => {
                 errorMsg.style.display = 'block'; errorMsg.innerText = "> ERREUR DE CONNEXION.";
                 loginBtn.innerText = "S'authentifier"; loginBtn.disabled = false;
+            });
+        }
+
+        function openAdminPanel() {
+            document.getElementById('admin-panel').style.display = 'block';
+            database.ref('connected_users').on('value', (snapshot) => {
+                const rows = document.getElementById('admin-rows');
+                rows.innerHTML = "";
+                const data = snapshot.val();
+                for (let group in data) {
+                    rows.innerHTML += `<tr>
+                        <td>${group.replace(/_/g, ' ')}</td>
+                        <td class="status-online">ACTIF</td>
+                        <td>${data[group].lastSeen || 'Inconnu'}</td>
+                    </tr>`;
+                }
             });
         }
 
@@ -347,11 +394,7 @@
 
         document.getElementById('darknetForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            
-            let productsOnly = "";
-            let quantitiesOnly = "";
-            let cartEmpty = true;
-
+            let productsOnly = ""; let quantitiesOnly = ""; let cartEmpty = true;
             for (const prod in panier) {
                 if (panier[prod].qty > 0) {
                     productsOnly += `${prod}, `;
@@ -359,18 +402,13 @@
                     cartEmpty = false;
                 }
             }
-
             if (cartEmpty) { alert("Votre panier est vide !"); return; }
-            
-            // On retire la virgule et l'espace final
             productsOnly = productsOnly.slice(0, -2);
             quantitiesOnly = quantitiesOnly.slice(0, -2);
-
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.innerText = "Chiffrement...";
             submitBtn.disabled = true;
 
-            // Préparation Discord
             const discordFields = [
                 { name: "👥 Groupe Faction", value: currentGroup, inline: true },
                 { name: "👤 Client", value: document.getElementById('alias').value, inline: true },
@@ -378,29 +416,22 @@
                 { name: "📍 Lieu", value: document.getElementById('dropzone').value, inline: false },
                 { name: "📝 Instructions", value: document.getElementById('message').value || "Aucune.", inline: false }
             ];
-
             for (const prod in panier) {
-                if (panier[prod].qty > 0) {
-                    discordFields.push({ name: `📦 ${prod}`, value: `Quantité : **${panier[prod].qty}**`, inline: true });
-                }
+                if (panier[prod].qty > 0) discordFields.push({ name: `📦 ${prod}`, value: `Quantité : **${panier[prod].qty}**`, inline: true });
             }
             discordFields.push({ name: "💰 TOTAL", value: `**${montantTotalCommande.toLocaleString()}$**`, inline: false });
 
             fetch(webhookURL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    content: "🚨 **NOUVELLE COMMANDE DARKNET** 🚨",
-                    embeds: [{ color: 65280, fields: discordFields, timestamp: new Date() }]
-                })
+                body: JSON.stringify({ content: "🚨 **NOUVELLE COMMANDE DARKNET** 🚨", embeds: [{ color: 65280, fields: discordFields, timestamp: new Date() }] })
             });
 
-            // Préparation Google Form
             const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSfnOJV5fYJlKY9e2-aQDYJ8iEsIRRt7wSkmi-x9Dp2p8VKYyg/formResponse";
             const formData = new URLSearchParams();
             formData.append('entry.3134180', document.getElementById('alias').value + " (" + currentGroup + ")"); 
-            formData.append('entry.1778551102', productsOnly); // Noms des produits
-            formData.append('entry.738962695', quantitiesOnly); // Chiffres des quantités
+            formData.append('entry.1778551102', productsOnly);
+            formData.append('entry.738962695', quantitiesOnly);
             formData.append('entry.762486752', document.getElementById('dropzone').value);
             formData.append('entry.561464095', document.getElementById('contact').value);
             formData.append('entry.2107709589', montantTotalCommande + "$");
