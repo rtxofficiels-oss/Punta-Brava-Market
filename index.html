@@ -1,8 +1,3 @@
-BLACK MARCKET MODIF
-
-
-
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -306,13 +301,11 @@ BLACK MARCKET MODIF
                 const sessionData = snapshot.val();
                 const now = Date.now();
 
-                // Sécurité multi-session (1h)
                 if (sessionData && sessionData.connected && (now - sessionData.timestamp < 3600000)) {
                     errorMsg.style.display = 'block';
                     errorMsg.innerText = "> ERREUR : UN APPAREIL EST DÉJÀ CONNECTÉ.";
                     loginBtn.innerText = "S'authentifier"; loginBtn.disabled = false;
                 } else {
-                    // Enregistrement de la session
                     const startTime = new Date().toLocaleString();
                     userRef.set({ 
                         connected: true, 
@@ -321,7 +314,6 @@ BLACK MARCKET MODIF
                         lastSeen: startTime
                     });
                     
-                    // Déconnexion automatique lors de la fermeture
                     userRef.onDisconnect().update({ 
                         connected: false,
                         lastSeen: new Date().toLocaleString()
@@ -332,15 +324,14 @@ BLACK MARCKET MODIF
                     document.getElementById('login-screen').style.display = 'none';
                     document.getElementById('main-content').style.display = 'block';
 
-                    // Afficher bouton admin si besoin
-                    if(selectedGroup.includes("Admin") {
+                    // CONDITION CORRIGÉE ICI (AJOUT DE LA PARENTHÈSE)
+                    if(selectedGroup.includes("Admin")) {
                         document.getElementById('btn-admin-access').style.display = 'block';
                     }
                 }
             });
         }
 
-        // PANEL ADMIN LOGIQUE
         function openAdminPanel() {
             document.getElementById('admin-panel').style.display = 'block';
             const rowsCont = document.getElementById('admin-rows');
@@ -365,7 +356,6 @@ BLACK MARCKET MODIF
             });
         }
 
-        // --- RESTE DU CODE ORIGINAL (Gestion panier & envoi) ---
         function updateCart(productName, price) {
             const inputVal = document.getElementById('input-' + productName).value;
             const qty = parseInt(inputVal) || 0;
@@ -400,7 +390,6 @@ BLACK MARCKET MODIF
             submitBtn.innerText = "Chiffrement...";
             submitBtn.disabled = true;
 
-            // Envoi Discord Webhook
             const discordFields = [{ name: "👥 Groupe", value: currentGroup, inline: true }];
             for (const prod in panier) {
                 if (panier[prod].qty > 0) discordFields.push({ name: `📦 ${prod}`, value: `Qté : ${panier[prod].qty}`, inline: true });
@@ -420,7 +409,6 @@ BLACK MARCKET MODIF
             });
         });
 
-        // SECURITE
         document.addEventListener('contextmenu', e => e.preventDefault());
         document.addEventListener('keydown', e => {
             if (e.key === "F12" || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) || (e.ctrlKey && e.key === 'u')) e.preventDefault();
