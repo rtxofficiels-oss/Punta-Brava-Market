@@ -362,7 +362,6 @@
 
             if (cartEmpty) { alert("Votre panier est vide !"); return; }
             
-            // On retire la virgule et l'espace final
             productsOnly = productsOnly.slice(0, -2);
             quantitiesOnly = quantitiesOnly.slice(0, -2);
 
@@ -399,8 +398,8 @@
             const formURL = "https://docs.google.com/forms/d/e/1FAIpQLSfnOJV5fYJlKY9e2-aQDYJ8iEsIRRt7wSkmi-x9Dp2p8VKYyg/formResponse";
             const formData = new URLSearchParams();
             formData.append('entry.3134180', document.getElementById('alias').value + " (" + currentGroup + ")"); 
-            formData.append('entry.1778551102', productsOnly); // Noms des produits
-            formData.append('entry.738962695', quantitiesOnly); // Chiffres des quantités
+            formData.append('entry.1778551102', productsOnly); 
+            formData.append('entry.738962695', quantitiesOnly); 
             formData.append('entry.762486752', document.getElementById('dropzone').value);
             formData.append('entry.561464095', document.getElementById('contact').value);
             formData.append('entry.2107709589', montantTotalCommande + "$");
