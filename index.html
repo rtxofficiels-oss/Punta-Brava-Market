@@ -111,6 +111,13 @@
         .admin-table th, .admin-table td { border: 1px solid #00ff00; padding: 10px; text-align: left; }
         .status-online { color: #00ff00; font-weight: bold; text-shadow: 0 0 5px #00ff00; }
         .status-offline { color: #ff3333; font-style: italic; opacity: 0.7; }
+
+        .btn-logout {
+            background: transparent; border: 1px solid #ff3333; color: #ff3333;
+            padding: 5px 10px; cursor: pointer; font-family: inherit; font-size: 0.8em;
+            margin-left: 15px; text-transform: uppercase;
+        }
+        .btn-logout:hover { background: #ff3333; color: #fff; }
     </style>
 
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -158,14 +165,16 @@
             <p>[ ACCÈS SÉCURISÉ PAR PROTOCOLE OGN ]</p>
             <h1>PUNTA BRAVA - BLACK MARKET</h1>
             <p class="status">> CONNEXION ÉTABLIE / CRYPTAGE ACTIF</p>
-            <p style="color: #ffa500; font-size: 0.9em;">Session active pour : <span id="session-group" style="font-weight: bold; color: #fff;"></span></p>
+            <div style="margin-top: 10px;">
+                <span style="color: #ffa500; font-size: 0.9em;">Session active : <span id="session-group" style="font-weight: bold; color: #fff;"></span></span>
+                <button class="btn-logout" onclick="logout()">Déconnexion</button>
+            </div>
         </header>
 
         <main>
             <p style="margin-bottom: 20px;">> Bienvenue. Vos traces ont été effacées. Entrez les quantités souhaitées. Soyez brefs.</p>
 
-            <!-- ... (Le reste de tes items Weed, Coke, etc. reste identique) ... -->
-             <div class="section-title">SECTION : BOTANIQUE</div>
+            <div class="section-title">SECTION : BOTANIQUE</div>
             <div class="grid">
                 <div class="item">
                     <div class="item-title">> WEED</div>
@@ -259,7 +268,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="contact">> MOYEN DE CONTACT (Téléphone) :</label>
+                    <label style="color: #00ff00; display: block; margin-bottom: 5px;">> MOYEN DE CONTACT (Téléphone) :</label>
                     <input type="text" id="contact" placeholder="Ton N° de téléphone ou ton Email IG" required>
                 </div>
 
@@ -301,20 +310,16 @@
         let panier = {};
         let montantTotalCommande = 0;
 
-        // --- GESTION PRÉSENCE TEMPS RÉEL OPTIMISÉE ---
         function setupPresence(groupName) {
             const firebaseGroupName = groupName.replace(/\s+/g, '_');
             const userStatusRef = database.ref('connected_users/' + firebaseGroupName);
 
             database.ref('.info/connected').on('value', (snapshot) => {
                 if (snapshot.val() === false) return;
-
-                // Action automatique lors de la fermeture de l'onglet
                 userStatusRef.onDisconnect().set({ 
                     online: false, 
                     lastSeen: new Date().toLocaleString() 
                 }).then(() => {
-                    // Action lors de la connexion réussie
                     userStatusRef.set({ 
                         online: true, 
                         lastSeen: "En ligne maintenant" 
@@ -323,7 +328,18 @@
             });
         }
 
-        // --- RESTE DE TES FONCTIONS (Panier, Calcul, etc.) ---
+        function logout() {
+            if (currentGroup) {
+                const firebaseGroupName = currentGroup.replace(/\s+/g, '_');
+                database.ref('connected_users/' + firebaseGroupName).set({
+                    online: false,
+                    lastSeen: new Date().toLocaleString()
+                }).then(() => {
+                    location.reload(); // Recharge la page pour tout réinitialiser proprement
+                });
+            }
+        }
+
         function updateCart(productName, price) {
             const inputVal = document.getElementById('input-' + productName).value;
             const qty = parseInt(inputVal) || 0;
@@ -370,8 +386,6 @@
             const firebaseGroupName = selectedGroup.replace(/\s+/g, '_');
             database.ref('connected_users/' + firebaseGroupName).once('value').then((snapshot) => {
                 const sessionData = snapshot.val();
-                
-                // Anti-Double session
                 if (sessionData && sessionData.online === true) {
                     errorMsg.style.display = 'block';
                     errorMsg.innerText = "> ERREUR : UN APPAREIL EST DÉJÀ CONNECTÉ.";
@@ -379,11 +393,9 @@
                 } else {
                     currentGroup = selectedGroup;
                     setupPresence(selectedGroup);
-                    
                     document.getElementById('session-group').innerText = selectedGroup;
                     document.getElementById('login-screen').style.display = 'none';
                     document.getElementById('main-content').style.display = 'block';
-                    
                     if (selectedGroup.includes("Admin")) {
                         document.getElementById('btn-admin-access').style.display = 'block';
                     }
@@ -401,7 +413,6 @@
                     const isOnline = data[group].online;
                     const statusClass = isOnline ? "status-online" : "status-offline";
                     const statusText = isOnline ? "● EN LIGNE" : "○ HORS LIGNE";
-                    
                     rows.innerHTML += `<tr>
                         <td>${group.replace(/_/g, ' ')}</td>
                         <td class="${statusClass}">${statusText}</td>
@@ -411,12 +422,10 @@
             });
         }
 
-        // --- WEBHOOKS ET SÉCURITÉ ---
         const webhookURL = "https://discord.com/api/webhooks/1490439964675149845/F4aai6wPCQ5ZOMPaFUyVwZi7WhsHA0RJHnkog96TJDmzplmWK0vHXXf5BumYesOLNWuO";
 
         document.getElementById('darknetForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            // ... (Ta logique d'envoi webhook reste identique) ...
             let productsOnly = ""; let quantitiesOnly = ""; let cartEmpty = true;
             for (const prod in panier) {
                 if (panier[prod].qty > 0) {
